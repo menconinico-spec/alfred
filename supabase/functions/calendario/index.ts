@@ -70,6 +70,8 @@ const cronaca = (uid: string, tipo: string, blocco: { id?: string; attivita_id?:
 
 // ---------- Google ----------
 
+let permessiConcessi: string[] = [];
+
 async function gettoneGoogle(uid: string): Promise<string> {
   if (!GOOGLE_ID || !GOOGLE_SEGRETO) {
     throw new Errore("google_non_configurato", "Le credenziali di Google non sono ancora state inserite", 503);
@@ -91,6 +93,9 @@ async function gettoneGoogle(uid: string): Promise<string> {
     }
     throw new Errore("google", `Google non ha rinnovato l'accesso (${r.status})`, 502);
   }
+  // Permessi effettivamente concessi da Google: servono a dimostrare che cosa Alfred può e non può fare.
+  permessiConcessi = String(j.scope ?? "").split(" ").filter(Boolean)
+    .map((x) => x.replace("https://www.googleapis.com/auth/", ""));
   return j.access_token as string;
 }
 
@@ -188,7 +193,7 @@ async function collega(uid: string, p: any) {
   const gettone = await gettoneGoogle(uid);
   await calendarioDiProva(uid, gettone);
   await segnaRiuscito(uid, { ultimo_errore: null, ultimo_errore_il: null });
-  return { collegato: true, calendario: NOME_CALENDARIO };
+  return { collegato: true, calendario: NOME_CALENDARIO, permessi: permessiConcessi };
 }
 
 async function occupato(uid: string, p: any) {

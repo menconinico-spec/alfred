@@ -101,3 +101,39 @@ export function esito(numero, descrizione, riuscita, prova) {
   console.log(`${riuscita ? 'RIUSCITA' : 'FALLITA '} · ${numero} · ${descrizione}\n           prova: ${prova}`);
 }
 export const tutteRiuscite = () => esiti.every((e) => e.riuscita);
+
+/**
+ * Sessione dell'utilizzatore reale, senza password e senza inviare email:
+ * serve solo alle prove con Google, che è collegato al suo utente. Si usano comunque dati fittizi.
+ */
+export async function sessioneUtilizzatore() {
+  const elenco = await json(await fetch(`${URL_SB}/auth/v1/admin/users?per_page=200`, { headers: servizio }));
+  const reali = elenco.users.filter((x) => x.email !== EMAIL_PROVA);
+  if (reali.length !== 1) throw new Error(`Mi aspettavo un solo utente reale, ne trovo ${reali.length}`);
+  const l = await json(await fetch(`${URL_SB}/auth/v1/admin/generate_link`, {
+    method: 'POST', headers: servizio, body: JSON.stringify({ type: 'magiclink', email: reali[0].email }),
+  }));
+  return json(await fetch(`${URL_SB}/auth/v1/verify`, {
+    method: 'POST', headers: { apikey: segreti.SUPABASE_CHIAVE_PUBBLICA, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'magiclink', token_hash: l.hashed_token ?? l.properties?.hashed_token }),
+  }));
+}
+
+/** Chiude solo la sessione usata dalla prova: quelle dell'utilizzatore restano valide. */
+export const chiudiSessione = (sessione) => fetch(`${URL_SB}/auth/v1/logout?scope=local`, {
+  method: 'POST', headers: { apikey: segreti.SUPABASE_CHIAVE_PUBBLICA, Authorization: `Bearer ${sessione.access_token}` },
+});
+
+/** Chiama la funzione riservata con i diritti dell'utente della sessione. */
+export function funzioneCome(sessione) {
+  return async (azione, parametri = {}) => json(await fetch(`${URL_SB}/functions/v1/calendario`, {
+    method: 'POST',
+    headers: { apikey: segreti.SUPABASE_CHIAVE_PUBBLICA, Authorization: `Bearer ${sessione.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ azione, ...parametri }),
+  }));
+}
+
+/** Accesso di servizio all'archivio: solo per preparare e ripulire le prove. */
+export const archivioDiServizio = async (percorso, metodo = 'GET', corpo) => json(await fetch(`${URL_SB}/rest/v1/${percorso}`, {
+  method: metodo, headers: { ...servizio, Prefer: 'return=representation' }, body: corpo ? JSON.stringify(corpo) : undefined,
+}));
