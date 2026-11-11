@@ -1,0 +1,5 @@
+project_id = "alfred"
+
+[functions.calendario]
+# Il controllo dell'accesso avviene dentro la funzione (vedi functions/calendario/index.ts)
+verify_jwt = false

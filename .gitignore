@@ -1,0 +1,8 @@
+.env.segreti
+.env*
+copie/
+node_modules/
+.DS_Store
+supabase/.temp/
+supabase/.branches/
+prove/risultati/
