@@ -1,0 +1,28 @@
+# Pubblica la cartella web/ su GitHub Pages a ogni salvataggio che la modifica.
+name: Pubblica la pagina
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/pubblica.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pubblicazione.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: pubblicazione
+        uses: actions/deploy-pages@v4

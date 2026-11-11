@@ -1,0 +1,212 @@
+// Prove della pagina che non richiedono Google: prove 1, 5, 6, 7, 9, 10, 11 dell'incarico.
+// Avvio: (dalla cartella Alfred) npm run pagina   poi, in un'altra finestra:   node prove/pagina.prova.mjs
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  sessioneDiProva, eliminaUtenteDiProva, archivioCome, apriBrowser, apriPagina, clicca, pausa, testo, foto,
+  esito, tutteRiuscite, MAC, IPHONE, RISULTATI, URL_SB, segreti,
+} from './attrezzi.mjs';
+
+const browser = await apriBrowser();
+let sessione;
+try {
+  // ---------- 10a: accesso obbligatorio ----------
+  {
+    const { pagina } = await apriPagina(browser);
+    const t = await testo(pagina, 'body');
+    const r = await fetch(`${URL_SB}/rest/v1/attivita?select=id`, { headers: { apikey: segreti.SUPABASE_CHIAVE_PUBBLICA } });
+    await foto(pagina, '10-accesso-obbligatorio');
+    esito('10a', 'Senza accesso si vede solo la schermata di ingresso e l\'archivio rifiuta la lettura',
+      t.includes('Accedi con Google') && !t.includes('Age+') && r.status === 401,
+      `pagina: «${t.replace(/\s+/g, ' ').trim().slice(0, 70)}»; archivio senza accesso: risposta ${r.status}`);
+    await pagina.close();
+  }
+
+  sessione = await sessioneDiProva();
+  const db = archivioCome(sessione);
+
+  // ---------- 1: creare, modificare, collegare, ritrovare dopo il riavvio ----------
+  let { pagina, errori } = await apriPagina(browser, { sessione });
+  await pagina.waitForSelector('.bacheca');
+  await clicca(pagina, 'button', '+ Aggiungi scheda');
+  await pagina.type('.bacheca .nuova-voce input', 'Lancio webinar (prova)');
+  await pagina.keyboard.press('Enter');
+  await pagina.waitForFunction(() => document.body.innerText.includes('Lancio webinar (prova)') && document.querySelectorAll('.scheda-base:not(.fissa) .sotto-riga').length === 3);
+  await foto(pagina, '01a-progetto-mac');
+  await clicca(pagina, '.scheda-base:not(.fissa) .scheda-corpo', 'Apri');
+  await pagina.waitForSelector('.colonne');
+  await clicca(pagina, '.colonna:first-child button', '+ Aggiungi attività');
+  await pagina.type('.colonna:first-child .nuova-voce input', 'Scrivere la scaletta (prova)');
+  await pagina.keyboard.press('Enter');
+  await pagina.waitForSelector('.cartellino');
+  await clicca(pagina, '.cartellino', 'Scrivere la scaletta');
+  await pagina.waitForSelector('dialog[open] form');
+  // modifica: titolo, durata prevista, importanza e urgenza distinte
+  await pagina.$eval('dialog[open] input[type=text]', (e) => { e.value = 'Scrivere la scaletta del webinar (prova)'; });
+  await pagina.$eval('dialog[open] input[type=number]', (e) => { e.value = '90'; });
+  const scelte = await pagina.$$('dialog[open] .griglia-campi select');
+  await scelte[1].select('si'); // importante
+  await scelte[2].select('no'); // urgente
+  await foto(pagina, '01b-scheda-attivita-mac');
+  await clicca(pagina, 'button', 'Salva', 'dialog[open]');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'));
+  await foto(pagina, '01c-scheda-aperta-mac');
+  // riavvio: pagina chiusa e riaperta da zero, lettura diretta dall'archivio
+  await pagina.close();
+  ({ pagina, errori } = await apriPagina(browser, { sessione, percorso: '#/attivita' }));
+  await pagina.waitForSelector('.elenco .cartellino');
+  const dopoRiavvio = await testo(pagina);
+  const righe = await db('attivita?select=titolo,durata_prevista_min,importante,urgente,stato,sottoschede(titolo,schede(titolo,progetti(nome)))');
+  const a0 = righe[0];
+  esito('1', 'Attività creata, modificata, collegata a una scheda di Age+ e ritrovata dopo il riavvio',
+    dopoRiavvio.includes('Scrivere la scaletta del webinar (prova)') && a0.durata_prevista_min === 90 && a0.importante === true && a0.urgente === false
+      && a0.sottoschede.schede.progetti.nome === 'Age+' && a0.sottoschede.schede.titolo === 'Lancio webinar (prova)',
+    `archivio: «${a0.titolo}», ${a0.durata_prevista_min} min, importante=${a0.importante}, urgente=${a0.urgente}, in ${a0.sottoschede.schede.progetti.nome} › ${a0.sottoschede.schede.titolo} › ${a0.sottoschede.titolo}; visibile nella pagina riaperta`);
+
+  // nuova attività = subito in «Da pianificare»
+  await pagina.goto(pagina.url().replace(/#.*/, '#/matrice'));
+  await pagina.waitForSelector('.matrice');
+  const matrice0 = await pagina.$eval('.da-pianificare', (e) => e.innerText);
+  const inQuadrante = await pagina.$eval('.q2', (e) => e.innerText);
+  await foto(pagina, '01d-matrice-mac');
+  esito('1b', 'L\'attività entra da sola in «Da pianificare» e nel riquadro giusto della matrice',
+    matrice0.includes('Scrivere la scaletta del webinar') && inQuadrante.includes('Scrivere la scaletta del webinar'),
+    `«Da pianificare»: ${matrice0.split('\n')[0]}; riquadro «Importante, non urgente» contiene l'attività`);
+
+  // ---------- 5: a fine blocco l'attività resta aperta; durata proposta correggibile ----------
+  // Il blocco viene inserito direttamente nell'archivio come se fosse stato scritto e fosse terminato
+  // (la scrittura vera su Google è provata a parte, con l'account di Nico).
+  const att = (await db('attivita?select=id'))[0];
+  const ieri = Date.now() - 26 * 3600000;
+  const [b1] = await db('blocchi', 'POST', { attivita_id: att.id, inizio: new Date(ieri).toISOString(), fine: new Date(ieri + 3600000).toISOString(), stato: 'in_calendario', google_evento_id: 'finto1' });
+  await pagina.reload({ waitUntil: 'networkidle0' });
+  await pagina.waitForSelector('.fascia.conferma');
+  const statoPrima = (await db(`attivita?id=eq.${att.id}&select=stato`))[0].stato;
+  const tempoPrima = await db('registrazioni_tempo?select=id');
+  await clicca(pagina, '.fascia.conferma button', 'Scrivere la scaletta');
+  await pagina.waitForSelector('dialog[open] input[type=number]');
+  const proposta = await pagina.$eval('dialog[open] input[type=number]', (e) => e.value);
+  await foto(pagina, '05-fine-blocco-mac');
+  await pagina.$eval('dialog[open] input[type=number]', (e) => { e.value = '45'; });
+  await clicca(pagina, 'button', 'Conferma il tempo', 'dialog[open]');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'));
+  const reg = await db('registrazioni_tempo?select=minuti,blocco_id');
+  const statoDopo = (await db(`attivita?id=eq.${att.id}&select=stato,completata_il`))[0];
+  esito('5', 'A blocco terminato l\'attività resta aperta finché non si conferma; la durata proposta si corregge',
+    statoPrima === 'da_fare' && tempoPrima.length === 0 && proposta === '60' && reg.length === 1 && reg[0].minuti === 45
+      && statoDopo.stato === 'in_corso' && statoDopo.completata_il === null,
+    `prima della conferma: stato «${statoPrima}», ${tempoPrima.length} tempi registrati; proposta ${proposta} min corretta a 45; dopo: registrati ${reg[0]?.minuti} min, stato «${statoDopo.stato}», non completata`);
+
+  // ---------- 6: attività saltata → «Da pianificare», nulla cancellato ----------
+  const [b2] = await db('blocchi', 'POST', { attivita_id: att.id, inizio: new Date(ieri + 7200000).toISOString(), fine: new Date(ieri + 9000000).toISOString(), stato: 'in_calendario', google_evento_id: 'finto2' });
+  await pagina.reload({ waitUntil: 'networkidle0' });
+  await clicca(pagina, '.fascia.conferma button', 'Scrivere la scaletta');
+  await clicca(pagina, 'button', 'Segna come saltato', 'dialog[open]');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'));
+  const blocchiDopo = await db('blocchi?select=id,stato&order=inizio');
+  const attDopo = await db('attivita?select=id,stato');
+  const lista = await pagina.$eval('.da-pianificare', (e) => e.innerText);
+  esito('6', 'Un\'attività saltata entra in «Da pianificare» senza cancellare nulla',
+    lista.includes('Scrivere la scaletta del webinar') && blocchiDopo.length === 2 && blocchiDopo[1].stato === 'saltato'
+      && blocchiDopo[0].stato === 'svolto' && attDopo.length === 1 && (await db('registrazioni_tempo?select=id')).length === 1,
+    `blocchi nell'archivio: ${blocchiDopo.map((b) => b.stato).join(', ')}; attività ancora presente (stato «${attDopo[0].stato}»); tempo registrato intatto; visibile in «${lista.split('\n')[0]}»`);
+
+  // ---------- 7: tempo previsto ed effettivo distinti, mai inventati ----------
+  await clicca(pagina, '.laterale-barra a', 'Gestione del tempo');
+  await pagina.waitForSelector('.tempo-progetto');
+  // seconda attività senza durata e senza registrazioni: non deve comparire nessun numero inventato
+  const sotto = (await db('sottoschede?select=id,titolo,schede!inner(fissa)&schede.fissa=eq.false&order=posizione'))[0];
+  await db('attivita', 'POST', { sottoscheda_id: sotto.id, titolo: 'Preparare le diapositive (prova)' });
+  await pagina.reload({ waitUntil: 'networkidle0' });
+  await pagina.waitForSelector('.tempo-progetto');
+  const cifre = await pagina.$$eval('.cifra', (els) => els.map((e) => e.innerText.replace(/\n/g, ' ')));
+  await foto(pagina, '07-tempo-mac');
+  esito('7', 'Tempo previsto ed effettivo distinti; il blocco saltato non genera tempo; dove manca il dato è scritto che manca',
+    cifre[0].includes('1 h 30 min') && cifre[0].includes('1 attività senza durata') && cifre[1].includes('1 h') && cifre[2].includes('45 min'),
+    cifre.join(' | '));
+
+  // ---------- 9: errori di rete visibili; ultimo aggiornamento riuscito visibile ----------
+  await pagina.goto(pagina.url().replace(/#.*/, '#/attivita'));
+  await pagina.waitForSelector('.elenco .cartellino');
+  const ultimo = await pagina.$eval('.ultimo', (e) => e.innerText);
+  await pagina.setOfflineMode(true);
+  await clicca(pagina, '.cartellino', 'Preparare le diapositive');
+  await pagina.$eval('dialog[open] input[type=text]', (e) => { e.value = 'Titolo scritto senza rete (prova)'; });
+  await clicca(pagina, 'button', 'Salva', 'dialog[open]');
+  await new Promise((r) => setTimeout(r, 1500));
+  const fascia = await pagina.$eval('.fascia.errore', (e) => e.innerText).catch(() => '');
+  const ancoraAperta = !!(await pagina.$('dialog[open]'));
+  await pagina.evaluate(() => document.querySelector('dialog[open]')?.close());
+  await foto(pagina, '09-errore-di-rete-mac');
+  await pagina.setOfflineMode(false);
+  const nonSalvato = (await db('attivita?select=titolo')).every((r) => !r.titolo.includes('senza rete'));
+  await clicca(pagina, '.fascia.errore button', 'Riprova');
+  await pagina.waitForFunction(() => !document.querySelector('.fascia.errore'), { timeout: 10000 });
+  esito('9', 'Errore di rete visibile, modifica non data per salvata, ultimo aggiornamento riuscito visibile',
+    /Archivio: ultimo aggiornamento riuscito oggi alle \d\d:\d\d/.test(ultimo) && /rete/i.test(fascia) && ancoraAperta && nonSalvato,
+    `in pagina: «${ultimo.split('\n')[0]}»; senza rete compare: «${fascia.split('\n')[0].slice(0, 90)}»; la finestra resta aperta e l'archivio non contiene la modifica; con «Riprova» l'avviso sparisce`);
+
+  // ---------- 11: esportazione leggibile e ripristino ----------
+  const copia = await pagina.evaluate(async () => (await import('./js/archivio.js')).esporta());
+  const fileCopia = join(RISULTATI, '11-copia-di-prova.json');
+  writeFileSync(fileCopia, JSON.stringify(copia, null, 2));
+  const conteggi = Object.fromEntries(Object.entries(copia.tabelle).map(([k, v]) => [k, v.length]));
+  // danno simulato: si elimina la scheda di prova (con attività, blocchi e tempi a cascata) e si cambia un titolo
+  const scheda = (await db('schede?fissa=eq.false&select=id'))[0];
+  await db(`schede?id=eq.${scheda.id}`, 'DELETE');
+  const dopoDanno = { attivita: (await db('attivita?select=id')).length, blocchi: (await db('blocchi?select=id')).length, tempi: (await db('registrazioni_tempo?select=id')).length };
+  await pagina.reload({ waitUntil: 'networkidle0' });
+  await pagina.goto(pagina.url().replace(/#.*/, '#/dati'));
+  await pagina.waitForSelector('input[type=file]');
+  await (await pagina.$('input[type=file]')).uploadFile(fileCopia);
+  await pagina.waitForSelector('dialog[open] table');
+  const anteprima = await pagina.$eval('dialog[open] table', (e) => e.innerText.replace(/\t/g, ' ').replace(/\n/g, ' | '));
+  await foto(pagina, '11-anteprima-ripristino-mac');
+  await clicca(pagina, 'button', 'Ripristina', 'dialog[open]');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'), { timeout: 20000 });
+  const dopo = { attivita: await db('attivita?select=titolo,durata_prevista_min&order=creato_il'), blocchi: (await db('blocchi?select=id')).length, tempi: await db('registrazioni_tempo?select=minuti') };
+  esito('11', 'Esportazione in formato leggibile e ripristino provato dopo una cancellazione',
+    dopoDanno.attivita === 0 && dopo.attivita.length === conteggi.attivita && dopo.blocchi === conteggi.blocchi && dopo.tempi[0]?.minuti === 45
+      && dopo.attivita[0].durata_prevista_min === 90 && copia.tabelle.google_credenziali === undefined,
+    `copia (testo JSON) con ${JSON.stringify(conteggi)}; dopo la cancellazione: ${JSON.stringify(dopoDanno)}; anteprima: ${anteprima.slice(0, 160)}…; dopo il ripristino: ${dopo.attivita.length} attività, ${dopo.blocchi} blocchi, tempo ${dopo.tempi[0]?.minuti} min`);
+
+  // ---------- 10b: disposizione Mac e iPhone ----------
+  const larghezze = async (p) => p.evaluate(() => ({
+    barra: getComputedStyle(document.querySelector('.laterale-barra')).position,
+    barraTelefono: getComputedStyle(document.querySelector('.barra-telefono')).display,
+    sborda: document.documentElement.scrollWidth > window.innerWidth + 1,
+    colonneBacheca: getComputedStyle(document.querySelector('.bacheca') || document.body).gridTemplateColumns.split(' ').length,
+  }));
+  await pagina.goto(pagina.url().replace(/#.*/, '#/progetto'));
+  await pagina.waitForSelector('.bacheca');
+  const mac = await larghezze(pagina);
+  await foto(pagina, '10-progetto-mac');
+  await pagina.goto(pagina.url().replace(/#.*/, '#/calendario')); await pausa(pagina, 400); await foto(pagina, '10-calendario-mac');
+  const tel = await apriPagina(browser, { sessione, schermo: IPHONE });
+  await tel.pagina.waitForSelector('.bacheca');
+  const iphone = await larghezze(tel.pagina);
+  await foto(tel.pagina, '10-progetto-iphone');
+  for (const [percorso, nome] of [['#/matrice', 'matrice'], ['#/calendario', 'calendario'], ['#/tempo', 'tempo'], ['#/dati', 'dati']]) {
+    await tel.pagina.goto(tel.pagina.url().replace(/#.*/, '') + percorso); await pausa(tel.pagina, 400);
+    iphone[`sborda_${nome}`] = await tel.pagina.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await foto(tel.pagina, `10-${nome}-iphone`);
+  }
+  await clicca(tel.pagina, '.barra-telefono button', 'Menu'); await foto(tel.pagina, '10-menu-iphone');
+  await tel.pagina.goto(tel.pagina.url().replace(/#.*/, '#/attivita')); await pausa(tel.pagina, 300);
+  await clicca(tel.pagina, '.cartellino', 'Scrivere la scaletta'); await foto(tel.pagina, '10-attivita-iphone');
+  const sbordaTel = Object.entries(iphone).filter(([k, v]) => k.startsWith('sborda') && v).map(([k]) => k);
+  esito('10b', 'Disposizione distinta e usabile su Mac e su iPhone',
+    mac.barra !== 'fixed' && mac.barraTelefono === 'none' && mac.colonneBacheca === 2 && !mac.sborda
+      && iphone.barra === 'fixed' && iphone.barraTelefono !== 'none' && iphone.colonneBacheca === 1 && sbordaTel.length === 0,
+    `Mac 1440×900: barra laterale fissa a sinistra, bacheca a ${mac.colonneBacheca} zone; iPhone 393×852: barra in basso, menu a scomparsa, una colonna, nessuna pagina esce dallo schermo${sbordaTel.length ? ` TRANNE ${sbordaTel}` : ''}. Immagini in prove/risultati/`);
+
+  const tutti = [...errori, ...tel.errori];
+  esito('—', 'Nessun errore di programma durante le prove', tutti.length === 0, tutti.length ? tutti.slice(0, 5).join(' ‖ ') : 'nessun errore registrato dal browser');
+} catch (e) {
+  esito('!', 'Le prove si sono interrotte', false, e.stack.split('\n').slice(0, 4).join(' / '));
+} finally {
+  await browser.close();
+  // L'utente di prova e tutti i suoi dati fittizi vengono eliminati.
+  await eliminaUtenteDiProva().catch((e) => console.log('pulizia non riuscita:', e.message));
+}
+process.exit(tutteRiuscite() ? 0 : 1);
