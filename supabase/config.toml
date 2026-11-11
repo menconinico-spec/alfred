@@ -11,3 +11,9 @@ site_url = "https://menconinico-spec.github.io/alfred/"
 additional_redirect_urls = ["https://menconinico-spec.github.io/alfred/", "http://127.0.0.1:8765/", "http://localhost:8765/"]
 # Nessuna nuova iscrizione: l'unico utente viene creato a mano
 enable_signup = false
+
+# Accesso con Google. ID client e segreto non stanno qui: arrivano da .env.segreti al momento dell'invio.
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
