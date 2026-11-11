@@ -14,7 +14,7 @@ Aggiornato: 11 novembre 2026.
 
 - Mac: aprire l'indirizzo della pagina in Chrome o Safari. In Chrome si può installare come app dal menu del browser.
 - iPhone: aprire l'indirizzo in Safari, premere Condividi, poi «Aggiungi alla schermata Home».
-- Accesso: «Accedi con Google», con l'unico account ammesso. Provato dal Mac l'11 novembre 2026. Non ancora provato dall'app installata su iPhone.
+- Accesso: «Accedi con Google», con l'unico account ammesso. Provato dal Mac l'11 novembre 2026. Provato anche dall'app aggiunta alla schermata Home di un iPhone: l'utilizzatore ha confermato l'11 novembre 2026 che l'accesso funziona.
 - Google mostra l'avviso «app non verificata»: è atteso, l'app è privata.
 - Ogni 7 giorni Google chiede di rifare il collegamento, perché l'app Google è in stato «Test» (vedi manutenzione).
 

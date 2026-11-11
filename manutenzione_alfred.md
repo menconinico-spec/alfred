@@ -39,7 +39,6 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 - Segnare un'attività come completata non toglie i suoi blocchi futuri dal calendario.
 - Senza rete la pagina si apre ma non salva: non c'è una coda di modifiche da inviare dopo.
 - I riepiloghi delle 8:00 e delle 19:00 non esistono.
-- L'accesso da app installata su iPhone non è ancora stato provato su un iPhone vero.
 
 ## Controlli periodici
 
