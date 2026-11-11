@@ -225,6 +225,32 @@ async function occupato(uid: string, p: any) {
   return { occupati, calendari_letti: ids.length - nonLetti, calendari_non_letti: nonLetti };
 }
 
+/**
+ * Dice quali calendari non restituiscono gli orari occupati, con nome e motivo.
+ * Legge i nomi dei calendari (autorizzato dall'utilizzatore l'11 novembre 2026), mai gli eventi.
+ */
+async function calendariNonLetti(uid: string) {
+  const gettone = await gettoneGoogle(uid);
+  const prova = await calendarioDiProva(uid, gettone);
+  const elenco = (await elencoCalendari(gettone)).filter((c) => c.id !== prova);
+  const adesso = new Date();
+  const r = esigi(
+    await google(gettone, "POST", "/freeBusy", {
+      timeMin: adesso.toISOString(), timeMax: new Date(+adesso + 86400000).toISOString(), timeZone: FUSO,
+      items: elenco.map((c) => ({ id: c.id })),
+    }),
+    "lettura degli orari occupati",
+  );
+  const nonLetti = elenco
+    .filter((c) => r.calendars?.[c.id]?.errors?.length || !r.calendars?.[c.id])
+    .map((c) => ({
+      nome: c.summaryOverride ?? c.summary ?? "(senza nome)",
+      accesso: c.accessRole,
+      motivo: r.calendars?.[c.id]?.errors?.[0]?.reason ?? "nessuna risposta",
+    }));
+  return { calendari: elenco.length, non_letti: nonLetti };
+}
+
 async function creaBlocco(uid: string, p: any) {
   const b = await bloccoDi(uid, p.blocco_id);
   if (b.stato !== "da_scrivere") return { blocco: b, gia_scritto: true };
@@ -380,7 +406,7 @@ async function sincronizza(uid: string) {
 
 const AZIONI: Record<string, (uid: string, p: any) => Promise<unknown>> = {
   collega, occupato, crea_blocco: creaBlocco, sposta_blocco: spostaBlocco,
-  togli_blocco: togliBlocco, sincronizza,
+  togli_blocco: togliBlocco, sincronizza, calendari_non_letti: calendariNonLetti,
 };
 
 Deno.serve(async (richiesta) => {

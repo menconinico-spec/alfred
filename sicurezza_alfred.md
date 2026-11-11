@@ -32,6 +32,7 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 - La funzione riservata scrive solo sul calendario che ha creato lei («Alfred prova») e degli altri chiede solo gli intervalli occupati.
 - Provato l'11 novembre 2026: Google ha concesso solo `calendar.app.created`, `calendar.calendarlist.readonly` e `calendar.freebusy`. Nessuno di questi consente di leggere titoli o di scrivere eventi su calendari non creati da Alfred. Non è stato tentato di proposito un evento fuori da «Alfred prova»: sarebbe stato contro le regole dell'incarico.
 - La funzione restituisce alla pagina solo inizio e fine degli orari occupati (provato).
+- Su autorizzazione dell'utilizzatore (11 novembre 2026) la funzione ha anche un'azione di controllo, `calendari_non_letti`, che legge i nomi dei calendari, mai gli eventi. La pagina non la usa.
 
 ## Codice pubblico
 

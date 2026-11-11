@@ -29,7 +29,7 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 ## Problemi noti e limiti
 
 - **L'autorizzazione di Google scade ogni 7 giorni.** L'app Google è rimasta in stato «Test» perché la console non ha consentito di pubblicarla (pulsante «Pubblica app» bloccato). Alla scadenza Alfred mostra che Google va ricollegato: si rientra da «Dati e collegamenti». Resta da risolvere.
-- Uno dei 9 calendari dell'account non restituisce gli orari occupati (rilevato l'11 novembre 2026). Alfred non legge i nomi dei calendari, quindi non sa quale: gli impegni di quel calendario non vengono evitati dalle proposte.
+- Uno dei 9 calendari dell'account non restituisce gli orari occupati: è «Festività in Italia», un calendario di sola consultazione di Google (accertato l'11 novembre 2026 con l'azione `calendari_non_letti` della funzione). Non contiene impegni: nessun effetto sulle proposte, che però non evitano i giorni festivi.
 - Proposta, scrittura, allineamento e spostamento sono provati con Google reale. Non provati con Google reale: blocco rimosso in Google, blocco trasformato in giornata intera, conferma di fine su un blocco davvero terminato (provata solo con un blocco inserito nell'archivio).
 - La prova nel browser `pagina.prova.mjs` si è interrotta una volta su tre esecuzioni per un'attesa scaduta al caricamento; rieseguita, è riuscita. Causa non accertata.
 - Le fasce orarie per le proposte sono scritte in `web/js/proposta.js`: per cambiarle va modificato quel file.
