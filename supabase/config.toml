@@ -3,3 +3,11 @@ project_id = "alfred"
 [functions.calendario]
 # Il controllo dell'accesso avviene dentro la funzione (vedi functions/calendario/index.ts)
 verify_jwt = false
+
+[auth]
+enabled = true
+# Indirizzo della pagina pubblicata e indirizzi ammessi per il ritorno dopo l'accesso
+site_url = "https://menconinico-spec.github.io/alfred/"
+additional_redirect_urls = ["https://menconinico-spec.github.io/alfred/", "http://127.0.0.1:8765/", "http://localhost:8765/"]
+# Nessuna nuova iscrizione: l'unico utente viene creato a mano
+enable_signup = false
