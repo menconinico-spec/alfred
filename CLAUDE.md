@@ -33,9 +33,10 @@ Gestionale personale di un solo utilizzatore, non tecnico. Scrivi a lui in itali
 npm run prove                      # regole di calcolo
 npm run pagina                     # pagina in locale su http://127.0.0.1:8765/
 node prove/pagina.prova.mjs        # prove nel browser (serve la pagina in locale, oppure ALFRED_PAGINA=<indirizzo>)
+node prove/google.prova.mjs fase1  # prove con Google reale; poi spostamento a mano in Google e `fase2` (che ripulisce)
 supabase db push --linked          # applica nuove migrazioni
 supabase functions deploy calendario --use-api   # pubblica la funzione (Docker non è installato)
-supabase config push               # applica supabase/config.toml
+supabase config push               # applica supabase/config.toml (prima esportare GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET da .env.segreti)
 ```
 
 Limiti dell'ambiente: Docker e Deno non sono installati, quindi la funzione non si prova in locale. L'interfaccia Supabase è alla versione 2.122.

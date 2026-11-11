@@ -14,13 +14,16 @@ Aggiornato: 11 novembre 2026.
 
 - Mac: aprire l'indirizzo della pagina in Chrome o Safari. In Chrome si può installare come app dal menu del browser.
 - iPhone: aprire l'indirizzo in Safari, premere Condividi, poi «Aggiungi alla schermata Home».
-- Accesso: «Accedi con Google». **Funzionerà dopo l'inserimento delle credenziali Google**, non ancora fatto.
+- Accesso: «Accedi con Google», con l'unico account ammesso. Provato dal Mac l'11 novembre 2026. Non ancora provato dall'app installata su iPhone.
+- Google mostra l'avviso «app non verificata»: è atteso, l'app è privata.
+- Ogni 7 giorni Google chiede di rifare il collegamento, perché l'app Google è in stato «Test» (vedi manutenzione).
 
-## Collegare Google (da fare una volta)
+## Collegare Google (fatto l'11 novembre 2026; qui come promemoria)
 
-1. Nella console Google Cloud: creare il progetto, attivare «Google Calendar API», configurare la schermata di consenso, pubblicare l'app, creare il client web con indirizzo di ritorno `https://wldcetatyaxanvalmlpt.supabase.co/auth/v1/callback`.
+1. Nella console Google Cloud: creare il progetto, attivare «Google Calendar API», configurare la schermata di consenso, aggiungere il proprio indirizzo fra gli utenti di prova, creare il client web con indirizzo di ritorno `https://wldcetatyaxanvalmlpt.supabase.co/auth/v1/callback`.
 2. Incollare ID client e segreto client nelle due righe vuote di `.env.segreti`.
-3. Claude Code li carica in Supabase (segreti della funzione e accesso con Google).
+3. Claude Code li carica in Supabase: `supabase secrets set` per la funzione e `supabase config push` per l'accesso con Google.
+4. Primo accesso dalla pagina: Google chiede tre permessi e Alfred crea il calendario «Alfred prova».
 
 ## Copia di sicurezza e ripristino
 

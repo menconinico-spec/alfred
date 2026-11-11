@@ -6,13 +6,14 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 
 - Un solo utente nell'archivio. Le nuove iscrizioni sono disattivate: provato, l'archivio dichiara `disable_signup: true`.
 - Senza accesso la pagina mostra solo «Accedi con Google» e l'archivio rifiuta ogni lettura (risposta 401, provato).
-- L'accesso con Google sarà attivo dopo l'inserimento delle credenziali Google. **Non ancora attivo né provato.**
+- L'accesso avviene con Google ed è attivo. Provato dal Mac l'11 novembre 2026.
 
 ## Dove stanno i dati
 
 - Archivio: Supabase, progetto «alfred», regione Francoforte, piano gratuito.
 - Ogni tabella ha le regole di sicurezza sulle righe attive: ogni riga appartiene a un proprietario e solo lui la legge e la modifica.
 - Le prove automatiche usano un utente separato che non vede i dati dell'utilizzatore, e viceversa.
+- Fanno eccezione le prove con Google (`prove/google.prova.mjs`): Google è collegato all'utente reale, quindi la prova apre una sessione a suo nome con la chiave di servizio, senza password e senza inviare email, usa solo dati fittizi, li toglie e chiude la sessione.
 
 ## Dove stanno le chiavi
 
@@ -29,7 +30,8 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 
 - Permessi richiesti: elenco dei calendari, orari occupati, gestione dei soli calendari creati da Alfred.
 - La funzione riservata scrive solo sul calendario che ha creato lei («Alfred prova») e degli altri chiede solo gli intervalli occupati.
-- **Da provare con l'account reale**: che Google rifiuti davvero le scritture fuori da «Alfred prova» con questi permessi.
+- Provato l'11 novembre 2026: Google ha concesso solo `calendar.app.created`, `calendar.calendarlist.readonly` e `calendar.freebusy`. Nessuno di questi consente di leggere titoli o di scrivere eventi su calendari non creati da Alfred. Non è stato tentato di proposito un evento fuori da «Alfred prova»: sarebbe stato contro le regole dell'incarico.
+- La funzione restituisce alla pagina solo inizio e fine degli orari occupati (provato).
 
 ## Codice pubblico
 

@@ -28,7 +28,10 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 
 ## Problemi noti e limiti
 
-- Collegamento a Google non ancora configurato: proposta di blocco, scrittura, allineamento e spostamenti **non sono ancora provati con Google reale**.
+- **L'autorizzazione di Google scade ogni 7 giorni.** L'app Google è rimasta in stato «Test» perché la console non ha consentito di pubblicarla (pulsante «Pubblica app» bloccato). Alla scadenza Alfred mostra che Google va ricollegato: si rientra da «Dati e collegamenti». Resta da risolvere.
+- Uno dei 9 calendari dell'account non restituisce gli orari occupati (rilevato l'11 novembre 2026). Alfred non legge i nomi dei calendari, quindi non sa quale: gli impegni di quel calendario non vengono evitati dalle proposte.
+- Proposta, scrittura, allineamento e spostamento sono provati con Google reale. Non provati con Google reale: blocco rimosso in Google, blocco trasformato in giornata intera, conferma di fine su un blocco davvero terminato (provata solo con un blocco inserito nell'archivio).
+- La prova nel browser `pagina.prova.mjs` si è interrotta una volta su tre esecuzioni per un'attesa scaduta al caricamento; rieseguita, è riuscita. Causa non accertata.
 - Le fasce orarie per le proposte sono scritte in `web/js/proposta.js`: per cambiarle va modificato quel file.
 - Su iPhone le attività non si trascinano: si spostano dal campo «Posizione» dentro l'attività. Le schede si spostano con le frecce.
 - Eliminare un'attività che ha blocchi in calendario lascia gli eventi in Google senza attività collegata: la pagina avvisa prima.
@@ -42,8 +45,10 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 
 - Ogni settimana: esportare una copia dei dati.
 - Dopo ogni modifica al codice: `npm run prove` e `node prove/pagina.prova.mjs`.
+- Dopo modifiche alla funzione `calendario`: `node prove/google.prova.mjs fase1`, spostare a mano in Google Calendar il blocco di prova, poi `fase2` (toglie da sé i dati di prova).
 - Ogni tanto: aggiornare l'interfaccia Supabase (installata 2.122, disponibile 3.1).
 
 ## Registro delle manutenzioni
 
 - 11 novembre 2026: prima installazione (struttura dei dati, funzione riservata, pagina, pubblicazione).
+- 11 novembre 2026: credenziali Google caricate, accesso con Google attivato, creato il calendario «Alfred prova», prove con Google reale riuscite. Dati di prova tolti: il calendario è vuoto.
