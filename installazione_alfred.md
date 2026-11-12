@@ -13,6 +13,7 @@ Aggiornato: 11 novembre 2026.
 ## Usare Alfred
 
 - Mac: aprire l'indirizzo della pagina in Chrome o Safari. In Chrome si può installare come app dal menu del browser.
+- Mac, dalla scrivania: doppio clic su «Alfred» (`Alfred.app`), che apre la pagina in una finestra propria di Chrome. Si ricrea con `zsh app-mac/crea_app.sh [immagine dell'icona]`.
 - iPhone: aprire l'indirizzo in Safari, premere Condividi, poi «Aggiungi alla schermata Home».
 - Accesso: «Accedi con Google», con l'unico account ammesso. Provato dal Mac l'11 novembre 2026. Provato anche dall'app aggiunta alla schermata Home di un iPhone: l'utilizzatore ha confermato l'11 novembre 2026 che l'accesso funziona.
 - Google mostra l'avviso «app non verificata»: è atteso, l'app è privata.
@@ -60,4 +61,6 @@ Questa procedura non è stata provata per intero.
 | Collegamento a Google | myaccount.google.com/permissions, voce «Alfred», rimuovere l'accesso |
 | Progetto Google Cloud | Console Google Cloud, impostazioni del progetto «Alfred», «Arresta» |
 | Calendario «Alfred prova» | Si elimina da Google Calendar, impostazioni del calendario. **Da non eliminare senza autorizzazione dell'utilizzatore** |
+| Avviso di pausa | Su script.google.com aprire «Alfred avviso pausa», eseguire `disinstalla`, poi eliminare il progetto |
+| Pulsante sulla scrivania | Spostare `Alfred.app` nel Cestino |
 | Codice sul Mac | Eliminare la cartella `Alfred` |

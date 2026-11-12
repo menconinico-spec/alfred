@@ -170,6 +170,52 @@ try {
       && dopo.attivita[0].durata_prevista_min === 90 && copia.tabelle.google_credenziali === undefined,
     `copia (testo JSON) con ${JSON.stringify(conteggi)}; dopo la cancellazione: ${JSON.stringify(dopoDanno)}; anteprima: ${anteprima.slice(0, 160)}…; dopo il ripristino: ${dopo.attivita.length} attività, ${dopo.blocchi} blocchi, tempo ${dopo.tempi[0]?.minuti} min`);
 
+  // ---------- 12: pagina del progetto modificabile ----------
+  await pagina.goto(pagina.url().replace(/#.*/, '#/progetto'));
+  await pagina.waitForSelector('.bacheca');
+  await clicca(pagina, '.bacheca button', '+ Aggiungi nota');
+  await pagina.type('.bacheca .nuova-voce input', 'Appunti liberi (prova)');
+  await pagina.keyboard.press('Enter'); await pausa(pagina, 400);
+  // Trascina l'angolo della nota: da 3 a 6 colonne e a 300 punti di altezza
+  const misura = () => pagina.evaluate(() => {
+    const b = [...document.querySelectorAll('.bacheca .blocco')].find((x) => x.textContent.includes('Appunti liberi (prova)'));
+    const r = b.getBoundingClientRect();
+    return { x: r.left, y: r.top, l: r.width, a: r.height, tela: b.parentElement.clientWidth };
+  });
+  const m0 = await misura();
+  await pagina.mouse.move(m0.x + m0.l - 6, m0.y + m0.a - 6);
+  await pagina.mouse.down();
+  await pagina.mouse.move(m0.x + m0.tela / 2 - 10, m0.y + 300, { steps: 8 });
+  await pagina.mouse.up(); await pausa(pagina, 500);
+  const salvata = (await db('schede?titolo=eq.Appunti%20liberi%20(prova)&select=tipo,larghezza,altezza'))[0];
+  await pagina.reload({ waitUntil: 'networkidle0' }); await pagina.waitForSelector('.bacheca');
+  const m1 = await misura();
+  // Riquadro fisso (Mission) ridimensionato: la misura va nel progetto
+  const mis = await pagina.evaluate(() => { const r = document.querySelector('.direzione .blocco').getBoundingClientRect(); return { x: r.left, y: r.top, l: r.width, a: r.height }; });
+  await pagina.mouse.move(mis.x + mis.l - 6, mis.y + mis.a - 6);
+  await pagina.mouse.down();
+  await pagina.mouse.move(mis.x + mis.l / 2, mis.y + 200, { steps: 6 });
+  await pagina.mouse.up(); await pausa(pagina, 500);
+  const disp = (await db('progetti?nome=eq.Age%2B&select=disposizione'))[0].disposizione;
+  await foto(pagina, '12-pagina-modificata');
+  // Nuovo progetto dalla barra laterale
+  await clicca(pagina, '.laterale-barra button', '+ Nuovo progetto');
+  await pagina.type('dialog[open] input[type=text]', 'Progetto di prova');
+  await clicca(pagina, 'dialog[open] button', 'Crea il progetto');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'), { timeout: 20000 }); await pausa(pagina, 400);
+  const progetti = await db('progetti?select=nome,colore_google,schede(titolo,fissa,sottoschede(titolo))&order=posizione');
+  const nuovoP = progetti.find((x) => x.nome === 'Progetto di prova');
+  const tel12 = await apriPagina(browser, { sessione, schermo: IPHONE });
+  await tel12.pagina.waitForSelector('.bacheca');
+  const telSborda = await tel12.pagina.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  await tel12.contesto.close();
+  esito('12', 'Pagina del progetto modificabile: blocchi ridimensionabili, note libere, nuovi progetti',
+    salvata?.tipo === 'nota' && salvata.larghezza === 6 && salvata.altezza === 300 && Math.abs(m1.a - 300) < 3 && m1.l > m0.l * 1.8
+      && disp.mission?.larghezza === 3 && disp.mission?.altezza === 200
+      && nuovoP && nuovoP.schede.length === 1 && nuovoP.schede[0].fissa && nuovoP.schede[0].sottoschede.length === 3 && nuovoP.colore_google !== 2 && !telSborda,
+    `nota creata e trascinata: nell'archivio larghezza ${salvata?.larghezza}/12, altezza ${salvata?.altezza}; dopo il riavvio è larga ${Math.round(m1.l)} punti (prima ${Math.round(m0.l)}) e alta ${Math.round(m1.a)}; ` +
+    `riquadro Mission: ${JSON.stringify(disp.mission)}; nuovo progetto «${nuovoP?.nome}» con scheda fissa e ${nuovoP?.schede[0]?.sottoschede.length} schede interne, colore diverso da Age+; su iPhone la pagina non esce dallo schermo: ${!telSborda}`);
+
   // ---------- 10b: disposizione Mac e iPhone ----------
   const larghezze = async (p) => p.evaluate(() => ({
     barra: getComputedStyle(document.querySelector('.laterale-barra')).position,
@@ -196,9 +242,9 @@ try {
   await clicca(tel.pagina, '.cartellino', 'Scrivere la scaletta'); await foto(tel.pagina, '10-attivita-iphone');
   const sbordaTel = Object.entries(iphone).filter(([k, v]) => k.startsWith('sborda') && v).map(([k]) => k);
   esito('10b', 'Disposizione distinta e usabile su Mac e su iPhone',
-    mac.barra !== 'fixed' && mac.barraTelefono === 'none' && mac.colonneBacheca === 2 && !mac.sborda
+    mac.barra !== 'fixed' && mac.barraTelefono === 'none' && mac.colonneBacheca === 12 && !mac.sborda
       && iphone.barra === 'fixed' && iphone.barraTelefono !== 'none' && iphone.colonneBacheca === 1 && sbordaTel.length === 0,
-    `Mac 1440×900: barra laterale fissa a sinistra, bacheca a ${mac.colonneBacheca} zone; iPhone 393×852: barra in basso, menu a scomparsa, una colonna, nessuna pagina esce dallo schermo${sbordaTel.length ? ` TRANNE ${sbordaTel}` : ''}. Immagini in prove/risultati/`);
+    `Mac 1440×900: barra laterale fissa a sinistra, tela a ${mac.colonneBacheca} colonne; iPhone 393×852: barra in basso, menu a scomparsa, una colonna, nessuna pagina esce dallo schermo${sbordaTel.length ? ` TRANNE ${sbordaTel}` : ''}. Immagini in prove/risultati/`);
 
   const tutti = [...errori, ...tel.errori];
   esito('—', 'Nessun errore di programma durante le prove', tutti.length === 0, tutti.length ? tutti.slice(0, 5).join(' ‖ ') : 'nessun errore registrato dal browser');

@@ -10,13 +10,15 @@ Aggiornato: 11 novembre 2026.
 | GitHub Pages | Pubblicazione della pagina | 0 € |
 | Google Calendar API | Orari occupati e blocchi | 0 € |
 | Libreria Supabase 2.119.0 | Copiata in `web/lib/`, non si aggiorna da sola | 0 € |
+| Google Apps Script | Avviso di pausa (script nell'account dell'utilizzatore) | 0 € |
 | puppeteer-core | Solo per le prove, sul Mac | 0 € |
 
 Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 
 ## Limiti del piano gratuito da tenere d'occhio
 
-- Supabase mette in pausa un progetto dopo 7 giorni senza attività. L'avviso automatico è **preparato ma non ancora attivo** (12 novembre 2026): lo script è in `avviso/avviso_pausa.gs` e va installato dall'utilizzatore nel proprio account Google; poi il suo indirizzo va scritto in `web/config.js` (`avvisoPausa`). Finché non è attivo, aprire Alfred almeno una volta a settimana. Un progetto in pausa si riattiva dal pannello Supabase.
+- Supabase mette in pausa un progetto dopo 7 giorni senza attività. Un progetto in pausa si riattiva dal pannello Supabase.
+- **Avviso di pausa, attivo dal 12 novembre 2026.** A ogni apertura riuscita (al massimo ogni sei ore per dispositivo) la pagina chiede alla funzione riservata di mandare un segnale a uno script nell'account Google dell'utilizzatore («Alfred avviso pausa», su script.google.com). Ogni mattina alle 8 lo script controlla: se l'ultimo segnale ha cinque giorni o più, manda una sola email all'utilizzatore con oggetto «ATTENZIONE: promemoria scadenza». Il codice dello script è in `avviso/avviso_pausa.gs`. Provato: il segnale arriva e l'ora registrata si aggiorna; l'email di prova è stata eseguita dall'utilizzatore. Non provato: l'email vera al quinto giorno.
 - Il piano gratuito consente due progetti attivi: sono occupati entrambi (Contatick e alfred).
 - Nessuna copia automatica dei dati: vale solo l'esportazione manuale.
 
@@ -33,6 +35,7 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 - Proposta, scrittura, allineamento e spostamento sono provati con Google reale. Non provati con Google reale: blocco rimosso in Google, blocco trasformato in giornata intera, conferma di fine su un blocco davvero terminato (provata solo con un blocco inserito nell'archivio).
 - La prova nel browser `pagina.prova.mjs` si è interrotta una volta su tre esecuzioni per un'attesa scaduta al caricamento; rieseguita, è riuscita. Causa non accertata.
 - Le fasce orarie per le proposte sono scritte in `web/js/proposta.js`: per cambiarle va modificato quel file.
+- Pagina del progetto: i blocchi si ridimensionano solo dal Mac; su iPhone stanno in colonna a misura automatica. I blocchi non si incastrano da soli: fra blocchi di altezza diversa possono restare spazi vuoti.
 - Su iPhone le attività non si trascinano: si spostano dal campo «Posizione» dentro l'attività. Le schede si spostano con le frecce.
 - Eliminare un'attività che ha blocchi in calendario lascia gli eventi in Google senza attività collegata: la pagina avvisa prima.
 - Un blocco trasformato in Google in evento di giornata intera viene solo segnalato.
@@ -50,4 +53,5 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 ## Registro delle manutenzioni
 
 - 11 novembre 2026: prima installazione (struttura dei dati, funzione riservata, pagina, pubblicazione).
+- 12 novembre 2026: pagina del progetto modificabile (blocchi ridimensionabili, note libere), creazione ed eliminazione di progetti, nuove aree Itinerun, Vivi Biohacking e BNI, avviso di pausa attivato, pulsante «Alfred» sulla scrivania, pagina delle norme sulla privacy.
 - 11 novembre 2026: credenziali Google caricate, accesso con Google attivato, creato il calendario «Alfred prova», prove con Google reale riuscite. Dati di prova tolti: il calendario è vuoto.

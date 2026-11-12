@@ -137,17 +137,26 @@ div.modificabile { min-height: 2.6em; }
 h1 .campo-diretto, h3 .campo-diretto { font-weight: inherit; }
 
 /* ---------- progetto ---------- */
-.direzione { display: grid; gap: .8rem; margin-bottom: 1.1rem; }
-.direzione-testi { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
-.direzione-liste { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
+/* Tela a dodici colonne: ogni blocco occupa quante colonne vuole e può avere un'altezza fissa. */
+.tela { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: .9rem; align-items: start; }
+.direzione { margin-bottom: 1.1rem; }
+.blocco { position: relative; min-width: 0; }
+.blocco > :first-child { height: 100%; }
+.blocco.alta > :first-child { overflow: auto; }
+.blocco.in-modifica { outline: 2px dashed var(--accento); outline-offset: 2px; user-select: none; }
+.maniglia { position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; cursor: nwse-resize; touch-action: none; opacity: 0; transition: opacity .15s;
+  background: linear-gradient(135deg, transparent 50%, var(--testo-tenue) 50%, var(--testo-tenue) 60%, transparent 60%, transparent 72%, var(--testo-tenue) 72%, var(--testo-tenue) 82%, transparent 82%); border-radius: 0 0 var(--raggio) 0; }
+.blocco:hover > .maniglia, .blocco.in-modifica > .maniglia { opacity: 1; }
+.aggiungi-blocco { display: flex; flex-direction: column; gap: .5rem; }
+.testata-azioni { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+input.corto { width: 6.5rem; }
+.nota-testo { padding: .3rem .7rem .7rem; }
+.nuovo-progetto { margin-top: .4rem; width: 100%; text-align: left; }
 .obiettivi { list-style: none; margin: 0 0 .4rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
 .voce-obiettivo { width: 100%; text-align: left; display: flex; flex-direction: column; gap: .1rem; border-left: 3px solid var(--colore); }
 
-.bacheca { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: .9rem; align-items: start; }
-.bacheca-mobili { display: flex; gap: .9rem; overflow-x: auto; padding-bottom: .6rem; align-items: flex-start; }
-.bacheca-mobili > * { flex: 0 0 240px; }
 .scheda-base { background: var(--superficie); border: 1px solid var(--bordo); border-top: 4px solid var(--colore); border-radius: var(--raggio); display: flex; flex-direction: column; }
-.scheda-base.fissa { background: var(--superficie-2); position: sticky; left: 0; }
+.scheda-base.fissa { background: var(--superficie-2); }
 .scheda-base > header { display: flex; align-items: center; justify-content: space-between; gap: .3rem; padding: .6rem .7rem .2rem; }
 .scheda-base h3 { text-transform: none; letter-spacing: 0; font-size: 1rem; color: var(--testo); margin: 0; min-width: 0; }
 .mosse { display: flex; flex: none; }
@@ -273,10 +282,10 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color:
   .barra-telefono span { font-size: 1.15rem; line-height: 1.1; }
   .barra-telefono .attiva { color: #fff; }
   h1 { font-size: 1.25rem; }
-  .direzione-testi, .direzione-liste, .bacheca, .matrice-disposizione, .matrice, .due-colonne { grid-template-columns: minmax(0, 1fr); }
-  .scheda-base.fissa { position: static; }
-  .bacheca-mobili { flex-direction: column; overflow: visible; }
-  .bacheca-mobili > * { flex: none; width: 100%; }
+  .tela, .matrice-disposizione, .matrice, .due-colonne { grid-template-columns: minmax(0, 1fr); }
+  /* Su iPhone i blocchi stanno in colonna, a misura automatica: le misure scelte valgono sul Mac. */
+  .tela > .blocco { grid-column: auto !important; height: auto !important; }
+  .maniglia, .solo-mac { display: none; }
   .mosse button:nth-child(1)::after, .mosse button:nth-child(2)::after { content: none; }
   .colonne { scroll-snap-type: x mandatory; margin: 0 -.9rem; padding: 0 .9rem 1rem; }
   .colonne > * { flex: 0 0 86%; scroll-snap-align: center; }

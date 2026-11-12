@@ -6,7 +6,7 @@ import { CONFIG } from '../config.js';
 import { chiama, sincronizza, googleCollegato } from './google.js';
 import { blocchiDaConfermare, COLORI } from './stato.js';
 import { oraTesto, dataOraTesto, giornoRoma, intervalloTesto } from './fuso.js';
-import { vistaProgetto, vistaScheda } from './viste/progetto.js';
+import { vistaProgetto, vistaScheda, apriNuovoProgetto } from './viste/progetto.js';
 import { vistaMatrice, listaDaPianificare } from './viste/matrice.js';
 import { vistaCalendario } from './viste/calendario.js';
 import { vistaElenco, vistaTempo, vistaDati, collegaGoogle, testoCronologia } from './viste/altre.js';
@@ -60,7 +60,8 @@ function barraLaterale() {
     h('div', { class: 'gruppo' },
       h('h2', {}, 'Progetti'),
       S.progetti.map((p) => h('a', { href: `#/progetto/${p.id}`, class: attiva(`#/progetto/${p.id}`), onclick: chiudi },
-        h('span', { class: 'pallino', style: `--colore:${COLORI[p.colore_google][1]}` }), p.nome))));
+        h('span', { class: 'pallino', style: `--colore:${COLORI[p.colore_google][1]}` }), p.nome)),
+      h('button', { class: 'aggiungi nuovo-progetto', onclick: () => { chiudi(); apriNuovoProgetto(); } }, '+ Nuovo progetto')));
 }
 
 function barraTelefono() {
@@ -165,15 +166,21 @@ async function consegnaChiaveGoogle() {
 
 /**
  * Segnala all'avviso di pausa che l'archivio è stato appena letto con successo.
- * Al massimo una volta ogni sei ore per dispositivo. Non porta con sé alcun dato.
+ * Passa dalla funzione riservata, che sola conosce l'indirizzo dell'avviso.
+ * Al massimo una volta ogni sei ore per dispositivo; se non riesce, riprova alla prossima apertura.
  */
-function segnalaAccesso() {
-  if (!CONFIG.avvisoPausa) return;
+async function segnalaAccesso() {
   const ultimo = +localStorage.getItem('alfred-ultimo-segnale') || 0;
   if (Date.now() - ultimo < 6 * 3600000) return;
-  fetch(CONFIG.avvisoPausa, { method: 'POST', mode: 'no-cors', body: 'alfred' })
-    .then(() => localStorage.setItem('alfred-ultimo-segnale', String(Date.now())))
-    .catch(() => {}); // se non parte, riprova alla prossima apertura
+  try {
+    const r = await fetch(`${CONFIG.url}/functions/v1/calendario`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${sessione?.access_token || ''}`, apikey: CONFIG.chiavePubblica, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ azione: 'segnale' }),
+    });
+    const d = await r.json();
+    if (d.riuscito) localStorage.setItem('alfred-ultimo-segnale', String(Date.now()));
+  } catch { /* silenzioso: non deve disturbare l'uso */ }
 }
 
 async function avvia() {

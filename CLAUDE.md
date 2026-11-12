@@ -8,10 +8,12 @@ Gestionale personale di un solo utilizzatore, non tecnico. Scrivi a lui in itali
   - `js/fuso.js`, `js/proposta.js`, `js/stato.js`: regole pure (fuso Europe/Rome, proposta di blocco, stati e tempo). Provate da `prove/regole.test.mjs`.
   - `js/archivio.js`: unico accesso a Supabase, copia dei dati in memoria, esportazione e ripristino.
   - `js/google.js`: chiamate alla funzione riservata. La pagina non parla mai con Google.
-  - `js/viste/`: una pagina per file (`progetto`, `attivita`, `matrice`, `calendario`, `altre`).
+  - `js/viste/`: una pagina per file (`progetto`, `attivita`, `matrice`, `calendario`, `altre`). La pagina del progetto è una tela a 12 colonne: ogni blocco ha larghezza e altezza salvate (`schede.larghezza/altezza`, `progetti.disposizione` per i riquadri fissi); le schede hanno `tipo` `scheda` o `nota`.
   - `lib/supabase.js`: libreria Supabase copiata in locale (versione 2.119.0).
 - `supabase/migrations/`: struttura dei dati e regole di sicurezza sulle righe.
 - `supabase/functions/calendario/`: unica funzione riservata; è il solo punto che contatta Google Calendar.
+- `avviso/avviso_pausa.gs`: script dell'avviso di pausa, installato a mano dall'utilizzatore su script.google.com. Riceve il segnale dall'azione `segnale` della funzione riservata (indirizzo nel segreto `AVVISO_PAUSA_URL`).
+- `app-mac/crea_app.sh`: crea `Alfred.app` sulla scrivania.
 - `supabase/config.toml`: impostazioni di accesso (indirizzi ammessi, iscrizioni disattivate).
 - `prove/`: prove automatiche. I risultati (immagini, copia di prova) vanno in `prove/risultati/`, escluso dal versionamento.
 - `.env.segreti`: chiavi locali, escluso dal versionamento. Non stamparne mai il contenuto.

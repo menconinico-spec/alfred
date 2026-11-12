@@ -404,9 +404,20 @@ async function sincronizza(uid: string) {
   return { modifiche, eventi_letti: eventi.length, eventi_non_di_alfred: estranei };
 }
 
+/**
+ * Segnala all'avviso di pausa (script nell'account Google dell'utilizzatore) che Alfred è stato appena usato.
+ * L'indirizzo dello script sta nei segreti della funzione: non compare nella pagina né nel codice pubblico.
+ */
+async function segnale() {
+  const indirizzo = Deno.env.get("AVVISO_PAUSA_URL");
+  if (!indirizzo) return { attivo: false };
+  const r = await fetch(indirizzo, { method: "POST", body: "alfred" }).catch(() => null);
+  return { attivo: true, riuscito: !!r?.ok };
+}
+
 const AZIONI: Record<string, (uid: string, p: any) => Promise<unknown>> = {
   collega, occupato, crea_blocco: creaBlocco, sposta_blocco: spostaBlocco,
-  togli_blocco: togliBlocco, sincronizza, calendari_non_letti: calendariNonLetti,
+  togli_blocco: togliBlocco, sincronizza, calendari_non_letti: calendariNonLetti, segnale,
 };
 
 Deno.serve(async (richiesta) => {

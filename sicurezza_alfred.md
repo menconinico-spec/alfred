@@ -22,6 +22,7 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 | Parola d'ordine dell'archivio, chiave di servizio Supabase | `.env.segreti` nella cartella `Alfred` del Mac | Chi usa il Mac |
 | ID client e segreto client di Google | `.env.segreti` e, dopo la configurazione, nei segreti di Supabase | Chi usa il Mac; la funzione riservata |
 | Chiave di rinnovo di Google | Tabella `google_credenziali` dell'archivio | Solo la funzione riservata. La pagina non ha il permesso di leggerla |
+| Indirizzo dello script di avviso di pausa | `.env.segreti` e segreti di Supabase; non compare nella pagina né nel codice pubblico | Chi usa il Mac; la funzione riservata. Chi lo conoscesse potrebbe solo azzerare il conteggio dei giorni, cioè ritardare un avviso |
 | Chiave pubblica Supabase | `web/config.js`, visibile a tutti | Chiunque: è fatta per essere pubblica e da sola non apre i dati |
 
 `.env.segreti` è escluso dal controllo di versione e leggibile solo dall'utente del Mac. Un file nascosto non è di per sé una protezione: chi ha accesso al Mac lo può aprire.
@@ -33,6 +34,12 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 - Provato l'11 novembre 2026: Google ha concesso solo `calendar.app.created`, `calendar.calendarlist.readonly` e `calendar.freebusy`. Nessuno di questi consente di leggere titoli o di scrivere eventi su calendari non creati da Alfred. Non è stato tentato di proposito un evento fuori da «Alfred prova»: sarebbe stato contro le regole dell'incarico.
 - La funzione restituisce alla pagina solo inizio e fine degli orari occupati (provato).
 - Su autorizzazione dell'utilizzatore (11 novembre 2026) la funzione ha anche un'azione di controllo, `calendari_non_letti`, che legge i nomi dei calendari, mai gli eventi. La pagina non la usa.
+
+## Che cosa può fare un estraneo
+
+- Vedere il codice e la pagina di ingresso. Nient'altro: senza l'account Google dell'utilizzatore l'archivio rifiuta ogni lettura e scrittura, e le iscrizioni sono chiuse.
+- Alfred è una pagina web: non ha alcun accesso al Mac. Un attacco ad Alfred non può toccare file o programmi del computer.
+- La protezione più efficace resta quella dell'account Google: verifica in due passaggi attiva.
 
 ## Codice pubblico
 

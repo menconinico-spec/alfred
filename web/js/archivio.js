@@ -127,14 +127,21 @@ export function attivitaDelProgetto(progettoId) {
 }
 
 /** Alla prima apertura crea il progetto Age+ con la sua scheda fissa. */
-export async function assicuraAgePlus() {
-  if (S.progetti.length) return;
-  const progetto = await crea('progetti', { nome: 'Age+', colore_google: 2, limite_ore_settimana: 5, posizione: 1 });
+/** Crea un progetto con la sua scheda fissa (Processi, Idee, Link utili). */
+export async function creaProgetto({ nome, colore_google = 2, limite_ore_settimana = null }) {
+  const progetto = await crea('progetti', { nome, colore_google, limite_ore_settimana, posizione: prossimaPosizione(S.progetti) });
   const fissa = await crea('schede', { progetto_id: progetto.id, titolo: 'Base del progetto', fissa: true, posizione: 0 });
   let n = 1;
   for (const titolo of ['Processi', 'Idee', 'Link utili']) {
     await crea('sottoschede', { scheda_id: fissa.id, titolo, posizione: n++ });
   }
+  return progetto;
+}
+
+/** Al primo avvio crea il progetto Age+. */
+export async function assicuraAgePlus() {
+  if (S.progetti.length) return;
+  await creaProgetto({ nome: 'Age+', colore_google: 2, limite_ore_settimana: 5 });
 }
 
 // ---------- esportazione e ripristino ----------
