@@ -2,6 +2,7 @@
 
 import { h, avviso } from './ui.js';
 import { sb, S, alCambio, caricaTutto, assicuraAgePlus, trova } from './archivio.js';
+import { CONFIG } from '../config.js';
 import { chiama, sincronizza, googleCollegato } from './google.js';
 import { blocchiDaConfermare, COLORI } from './stato.js';
 import { oraTesto, dataOraTesto, giornoRoma, intervalloTesto } from './fuso.js';
@@ -162,6 +163,19 @@ async function consegnaChiaveGoogle() {
   }
 }
 
+/**
+ * Segnala all'avviso di pausa che l'archivio è stato appena letto con successo.
+ * Al massimo una volta ogni sei ore per dispositivo. Non porta con sé alcun dato.
+ */
+function segnalaAccesso() {
+  if (!CONFIG.avvisoPausa) return;
+  const ultimo = +localStorage.getItem('alfred-ultimo-segnale') || 0;
+  if (Date.now() - ultimo < 6 * 3600000) return;
+  fetch(CONFIG.avvisoPausa, { method: 'POST', mode: 'no-cors', body: 'alfred' })
+    .then(() => localStorage.setItem('alfred-ultimo-segnale', String(Date.now())))
+    .catch(() => {}); // se non parte, riprova alla prossima apertura
+}
+
 async function avvia() {
   const errore = new URLSearchParams(location.search).get('error_description');
   const { data } = await sb.auth.getSession();
@@ -174,6 +188,7 @@ async function avvia() {
     await caricaTutto();
     await assicuraAgePlus();
   } catch { disegna(); return; }
+  segnalaAccesso();
   disegna();
   allinea();
 }
@@ -185,7 +200,7 @@ window.addEventListener('offline', () => { S.errore = 'Sei senza rete: quello ch
 window.matchMedia('(max-width: 760px)').addEventListener('change', disegna);
 // Al ritorno sulla pagina, se sono passati più di cinque minuti, si riallinea con Google.
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && sessione && S.caricato && Date.now() - ultimoControllo > 300000) allinea();
+  if (document.visibilityState === 'visible' && sessione && S.caricato && Date.now() - ultimoControllo > 300000) { allinea(); segnalaAccesso(); }
 });
 // Ogni minuto controlla se un blocco è terminato, senza interrogare la rete.
 let terminati = 0;

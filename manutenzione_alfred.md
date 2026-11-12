@@ -16,7 +16,7 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 
 ## Limiti del piano gratuito da tenere d'occhio
 
-- Supabase mette in pausa un progetto dopo 7 giorni senza attività. **Non esiste ancora nessun avviso automatico**: è stato proposto, non attivato. Finché non c'è, aprire Alfred almeno una volta a settimana. Un progetto in pausa si riattiva dal pannello Supabase.
+- Supabase mette in pausa un progetto dopo 7 giorni senza attività. L'avviso automatico è **preparato ma non ancora attivo** (12 novembre 2026): lo script è in `avviso/avviso_pausa.gs` e va installato dall'utilizzatore nel proprio account Google; poi il suo indirizzo va scritto in `web/config.js` (`avvisoPausa`). Finché non è attivo, aprire Alfred almeno una volta a settimana. Un progetto in pausa si riattiva dal pannello Supabase.
 - Il piano gratuito consente due progetti attivi: sono occupati entrambi (Contatick e alfred).
 - Nessuna copia automatica dei dati: vale solo l'esportazione manuale.
 

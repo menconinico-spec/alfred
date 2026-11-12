@@ -9,4 +9,6 @@ export const CONFIG = {
     'https://www.googleapis.com/auth/calendar.freebusy',
     'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
   ].join(' '),
+  // Indirizzo dell'avviso di pausa (script nell'account Google dell'utilizzatore). Vuoto = avviso non attivo.
+  avvisoPausa: '',
 };
