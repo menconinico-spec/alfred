@@ -297,3 +297,36 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color:
   input, select, textarea { font-size: 16px; } /* evita l'ingrandimento automatico su iPhone */
   #avvisi { bottom: 4.6rem; }
 }
+
+/* ---------- abitudini ---------- */
+.striscia-settimana { display: flex; align-items: center; gap: .3rem; margin-bottom: .6rem; }
+.striscia-settimana > .icona, .striscia-settimana > .piccolo { flex: none; }
+.giorno-striscia { flex: 1 1 0; min-width: 0; max-width: 5rem; display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .35rem .2rem; border-radius: 12px;
+  background: linear-gradient(to top, color-mix(in srgb, var(--riuscita, #2e9e5b) 28%, transparent) var(--pieno), transparent var(--pieno)); }
+.giorno-striscia small { color: var(--testo-tenue); font-size: .72rem; }
+.giorno-striscia.oggi strong { color: var(--accento); }
+.giorno-striscia.scelto { border-color: var(--accento); box-shadow: 0 0 0 1px var(--accento); }
+.giorno-striscia.futuro { opacity: .55; }
+.abitudine { display: flex; align-items: center; gap: .7rem; padding: .45rem 0; border-top: 1px solid var(--bordo); }
+.riquadro h2 + .abitudine { border-top: 0; }
+.spunta { flex: none; width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 50%; border: 2px solid var(--testo-tenue); background: transparent; font-weight: 700; font-size: 1rem; }
+.spunta.fatta, .quantita-valore.fatta { background: #2e9e5b; border-color: #2e9e5b; color: #fff; }
+.quantita { display: flex; align-items: center; gap: .2rem; flex: none; }
+.quantita-valore { font-variant-numeric: tabular-nums; min-width: 6.5rem; }
+.abitudine-nome { flex: 1; min-width: 0; text-align: left; border: 0; background: transparent; display: flex; flex-direction: column; gap: .05rem; padding: .15rem .3rem; }
+.abitudine-nome small { color: var(--testo-tenue); }
+.abitudine.fatta .abitudine-nome > span { color: var(--testo-tenue); text-decoration: line-through; }
+.riquadro.tenue { background: transparent; }
+.mese-testa { display: flex; align-items: center; gap: .5rem; text-transform: capitalize; }
+.mese { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; text-align: center; }
+.mese small { color: var(--testo-tenue); }
+.giorno-mese { padding: 0; min-height: 38px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+.giorno-mese.fatta { background: #2e9e5b; border-color: #2e9e5b; color: #fff; }
+.giorno-mese.parziale { background: color-mix(in srgb, #2e9e5b 30%, transparent); }
+.giorno-mese.mancata { border-color: var(--errore); }
+.giorno-mese.oggi { box-shadow: 0 0 0 2px var(--accento); }
+.giorno-mese:disabled { opacity: .4; }
+.pastiglia { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid var(--bordo); border-radius: 99px; padding: .2rem .6rem; }
+.pastiglia.attiva { border-color: var(--accento); background: color-mix(in srgb, var(--accento) 15%, transparent); }
+.giorni-scelta { margin-left: 1.6rem; }
+.giorni-scelta { display: flex; flex-wrap: wrap; gap: .35rem; }

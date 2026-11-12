@@ -6,6 +6,7 @@ Gestionale personale di un solo utilizzatore, non tecnico. Scrivi a lui in itali
 
 - `web/`: la pagina (HTML, CSS, JavaScript a moduli, nessuno strumento di costruzione). Pubblicata su GitHub Pages dal flusso `.github/workflows/pubblica.yml` a ogni invio che tocca `web/`.
   - `js/fuso.js`, `js/proposta.js`, `js/stato.js`: regole pure (fuso Europe/Rome, proposta di blocco, stati e tempo). Provate da `prove/regole.test.mjs`.
+  - `js/abitudini.js`: regole pure delle abitudini (prevista, fatta, serie, andamento del mese). Provate da `prove/abitudini.test.mjs`. Pagina in `js/viste/abitudini.js`; tabelle `abitudini` e `abitudini_registrazioni` (nessuna riga = nessun dato, mai uno zero).
   - `js/archivio.js`: unico accesso a Supabase, copia dei dati in memoria, esportazione e ripristino.
   - `js/google.js`: chiamate alla funzione riservata. La pagina non parla mai con Google.
   - `js/viste/`: una pagina per file (`progetto`, `attivita`, `matrice`, `calendario`, `altre`). La pagina del progetto è una tela a 12 colonne: ogni blocco ha larghezza e altezza salvate (`schede.larghezza/altezza`, `progetti.disposizione` per i riquadri fissi); le schede hanno `tipo` `scheda` o `nota`.

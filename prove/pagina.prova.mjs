@@ -27,7 +27,7 @@ try {
 
   // ---------- 1: creare, modificare, collegare, ritrovare dopo il riavvio ----------
   let { pagina, errori } = await apriPagina(browser, { sessione });
-  await pagina.waitForSelector('.bacheca');
+  await pagina.waitForSelector('.bacheca').catch(async (e) => { console.log('DIAGNOSI avvio:', (await testo(pagina, 'body')).slice(0, 400).replace(/\n/g, ' / ')); throw e; });
   await clicca(pagina, 'button', '+ Aggiungi scheda');
   await pagina.type('.bacheca .nuova-voce input', 'Lancio webinar (prova)');
   await pagina.keyboard.press('Enter');
@@ -140,7 +140,8 @@ try {
   await foto(pagina, '09-errore-di-rete-mac');
   await pagina.setOfflineMode(false);
   const nonSalvato = (await db('attivita?select=titolo')).every((r) => !r.titolo.includes('senza rete'));
-  await clicca(pagina, '.fascia.errore button', 'Riprova');
+  // Tornata la rete la pagina si riallinea anche da sola: «Riprova» va premuto solo se l'avviso c'è ancora.
+  await clicca(pagina, '.fascia.errore button', 'Riprova').catch(() => {});
   await pagina.waitForFunction(() => !document.querySelector('.fascia.errore'), { timeout: 10000 });
   esito('9', 'Errore di rete visibile, modifica non data per salvata, ultimo aggiornamento riuscito visibile',
     /Archivio: ultimo aggiornamento riuscito oggi alle \d\d:\d\d/.test(ultimo) && /rete/i.test(fascia) && ancoraAperta && nonSalvato,
@@ -215,6 +216,43 @@ try {
       && nuovoP && nuovoP.schede.length === 1 && nuovoP.schede[0].fissa && nuovoP.schede[0].sottoschede.length === 3 && nuovoP.colore_google !== 2 && !telSborda,
     `nota creata e trascinata: nell'archivio larghezza ${salvata?.larghezza}/12, altezza ${salvata?.altezza}; dopo il riavvio è larga ${Math.round(m1.l)} punti (prima ${Math.round(m0.l)}) e alta ${Math.round(m1.a)}; ` +
     `riquadro Mission: ${JSON.stringify(disp.mission)}; nuovo progetto «${nuovoP?.nome}» con scheda fissa e ${nuovoP?.schede[0]?.sottoschede.length} schede interne, colore diverso da Age+; su iPhone la pagina non esce dallo schermo: ${!telSborda}`);
+
+  // ---------- 13: abitudini ----------
+  await pagina.goto(pagina.url().replace(/#.*/, '#/abitudini')); await pausa(pagina, 300);
+  await clicca(pagina, 'button', '+ Nuova abitudine');
+  await pagina.type('dialog[open] input[type=text]', 'Lettura (prova)');
+  await clicca(pagina, 'dialog[open] button', 'Crea l\'abitudine');
+  await pagina.waitForFunction(() => !document.querySelector('dialog[open]'), { timeout: 20000 }); await pausa(pagina, 300);
+  const abId = (await db('abitudini?select=id'))[0].id;
+  // Come se fosse iniziata tre giorni fa, con ieri e l'altro ieri già fatti
+  const g = (n) => new Date(Date.now() + n * 86400000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' });
+  await db(`abitudini?id=eq.${abId}`, 'PATCH', { inizio: g(-3) });
+  await db('abitudini_registrazioni', 'POST', [{ abitudine_id: abId, giorno: g(-2), valore: 1 }, { abitudine_id: abId, giorno: g(-1), valore: 1 }]);
+  await pagina.reload({ waitUntil: 'networkidle0' }); await pausa(pagina, 300);
+  const primaSpunta = await testo(pagina, 'main');
+  const registrazioniPrima = (await db(`abitudini_registrazioni?giorno=eq.${g(0)}&select=id`)).length;
+  await pagina.click('.abitudine .spunta'); await pausa(pagina, 400);
+  const dopoSpunta = await testo(pagina, 'main');
+  const registrazioniDopo = await db(`abitudini_registrazioni?giorno=eq.${g(0)}&select=valore`);
+  await foto(pagina, '13-abitudini');
+  await clicca(pagina, '.abitudine-nome', 'Lettura (prova)');
+  const schedaAb = await testo(pagina, 'dialog[open]');
+  await foto(pagina, '13-abitudine-scheda');
+  await pagina.click('dialog[open] .finestra-testa button'); await pausa(pagina, 200);
+  await pagina.click('.abitudine .spunta'); await pausa(pagina, 400);
+  const dopoTolta = (await db(`abitudini_registrazioni?giorno=eq.${g(0)}&select=id`)).length;
+  const tel13 = await apriPagina(browser, { sessione, schermo: IPHONE, percorso: '#/abitudini' });
+  await pausa(tel13.pagina, 300);
+  const tel13Sborda = await tel13.pagina.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  await foto(tel13.pagina, '13-abitudini-iphone');
+  await tel13.contesto.close();
+  esito('13', 'Abitudini: creazione, spunta del giorno, serie, calendario del mese; nessun dato inventato',
+    /0 su 1 fatte/.test(primaSpunta) && /serie di 2 giorni/.test(primaSpunta) && registrazioniPrima === 0
+      && /1 su 1 fatte/.test(dopoSpunta) && /serie di 3 giorni/.test(dopoSpunta) && registrazioniDopo.length === 1
+      && /Serie attuale\s*3 giorni/.test(schedaAb) && /Totale volte\s*3/.test(schedaAb) && dopoTolta === 0 && !tel13Sborda,
+    `prima della spunta: «${primaSpunta.match(/Oggi: [^.]*\./)?.[0]}», ${primaSpunta.match(/serie di \d+ giorni/)?.[0]}, registrazioni di oggi nell'archivio: ${registrazioniPrima}; ` +
+    `dopo: «${dopoSpunta.match(/Oggi: [^.]*\./)?.[0]}», ${dopoSpunta.match(/serie di \d+ giorni/)?.[0]}, registrazioni: ${registrazioniDopo.length}; ` +
+    `scheda: ${schedaAb.match(/Serie attuale\s*\d+ giorni/)?.[0].replace(/\s+/g, ' ')}, ${schedaAb.match(/Totale volte\s*\d+/)?.[0].replace(/\s+/g, ' ')}; tolta la spunta, le registrazioni di oggi tornano ${dopoTolta} (nessuno zero scritto); su iPhone non esce dallo schermo: ${!tel13Sborda}`);
 
   // ---------- 10b: disposizione Mac e iPhone ----------
   const larghezze = async (p) => p.evaluate(() => ({

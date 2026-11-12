@@ -7,11 +7,11 @@ export const sb = window.supabase.createClient(CONFIG.url, CONFIG.chiavePubblica
   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
 
-export const TABELLE = ['progetti', 'obiettivi', 'schede', 'sottoschede', 'attivita', 'blocchi', 'registrazioni_tempo'];
+export const TABELLE = ['progetti', 'obiettivi', 'schede', 'sottoschede', 'attivita', 'blocchi', 'registrazioni_tempo', 'abitudini', 'abitudini_registrazioni'];
 
 export const S = {
   progetti: [], obiettivi: [], schede: [], sottoschede: [], attivita: [], blocchi: [],
-  registrazioni_tempo: [], cronologia: [], sinc: null,
+  registrazioni_tempo: [], abitudini: [], abitudini_registrazioni: [], cronologia: [], sinc: null,
   caricato: false,
   ultimoRiuscito: null, // ultimo scambio riuscito con l'archivio
   errore: null,         // ultimo errore dell'archivio ancora da risolvere
@@ -49,6 +49,7 @@ async function esegui(richiesta) {
 const ORDINE = {
   progetti: 'posizione', obiettivi: 'posizione', schede: 'posizione', sottoschede: 'posizione',
   attivita: 'posizione', blocchi: 'inizio', registrazioni_tempo: 'creato_il',
+  abitudini: 'posizione', abitudini_registrazioni: 'giorno',
 };
 
 export async function caricaTutto() {
@@ -83,6 +84,13 @@ export async function modifica(tabella, id, campi) {
 export async function elimina(tabella, id) {
   await esegui(() => sb.from(tabella).delete().eq('id', id));
   await caricaTutto();
+}
+
+/** Elimina una riga senza figli e la toglie dalla copia in memoria, senza rileggere tutto. */
+export async function togli(tabella, id) {
+  await esegui(() => sb.from(tabella).delete().eq('id', id));
+  S[tabella] = S[tabella].filter((r) => r.id !== id);
+  notifica();
 }
 
 export async function annota(tipo, { attivita_id = null, blocco_id = null, dettaglio = {} } = {}) {

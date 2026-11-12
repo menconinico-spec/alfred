@@ -11,6 +11,7 @@ import { vistaMatrice, listaDaPianificare } from './viste/matrice.js';
 import { vistaCalendario } from './viste/calendario.js';
 import { vistaElenco, vistaTempo, vistaDati, collegaGoogle, testoCronologia } from './viste/altre.js';
 import { apriEsito } from './viste/attivita.js';
+import { vistaAbitudini } from './viste/abitudini.js';
 
 const radice = document.getElementById('alfred');
 let sessione = null;
@@ -21,10 +22,11 @@ const STRUMENTI = [
   ['#/calendario', 'Calendario', '▦'],
   ['#/attivita', 'Attività', '☰'],
   ['#/matrice', 'Matrice', '◫'],
+  ['#/abitudini', 'Abitudini', '✓'],
   ['#/tempo', 'Gestione del tempo', '◔'],
   ['#/dati', 'Dati e collegamenti', '⚙'],
 ];
-const IN_ARRIVO = ['Abitudini', 'Finanze'];
+const IN_ARRIVO = ['Finanze'];
 
 function percorso() {
   const parti = (location.hash || '').replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -38,6 +40,7 @@ function contenuto() {
   if (a === 'matrice') return vistaMatrice();
   if (a === 'calendario') return vistaCalendario(disegna);
   if (a === 'attivita') return vistaElenco(disegna);
+  if (a === 'abitudini') return vistaAbitudini();
   if (a === 'tempo') return vistaTempo();
   if (a === 'dati') return vistaDati(disegna);
   return vistaProgetto(S.progetti[0]?.id);

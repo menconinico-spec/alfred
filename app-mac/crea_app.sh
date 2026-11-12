@@ -3,7 +3,7 @@
 # Uso: zsh app-mac/crea_app.sh [immagine quadrata .png per l'icona]
 set -e
 QUI="${0:A:h}"
-IMMAGINE="${1:-$QUI/../web/icone/icona-512.png}"
+IMMAGINE="${1:-$QUI/../web/icone/alfred-logo-1024.png}"
 APP="$HOME/Desktop/Alfred.app"
 INDIRIZZO="https://menconinico-spec.github.io/alfred/"
 
