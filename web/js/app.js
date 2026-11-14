@@ -12,6 +12,7 @@ import { vistaCalendario } from './viste/calendario.js';
 import { vistaElenco, vistaTempo, vistaDati, collegaGoogle, testoCronologia } from './viste/altre.js';
 import { apriEsito } from './viste/attivita.js';
 import { vistaAbitudini } from './viste/abitudini.js';
+import { vistaFinanze } from './viste/finanze.js';
 
 const radice = document.getElementById('alfred');
 let sessione = null;
@@ -23,10 +24,11 @@ const STRUMENTI = [
   ['#/attivita', 'Attività', '☰'],
   ['#/matrice', 'Matrice', '◫'],
   ['#/abitudini', 'Abitudini', '✓'],
+  ['#/finanze', 'Finanze', '€'],
   ['#/tempo', 'Gestione del tempo', '◔'],
   ['#/dati', 'Dati e collegamenti', '⚙'],
 ];
-const IN_ARRIVO = ['Finanze'];
+const IN_ARRIVO = [];
 
 function percorso() {
   const parti = (location.hash || '').replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -41,6 +43,7 @@ function contenuto() {
   if (a === 'calendario') return vistaCalendario(disegna);
   if (a === 'attivita') return vistaElenco(disegna);
   if (a === 'abitudini') return vistaAbitudini();
+  if (a === 'finanze') return vistaFinanze(b);
   if (a === 'tempo') return vistaTempo();
   if (a === 'dati') return vistaDati(disegna);
   return vistaProgetto(S.progetti[0]?.id);

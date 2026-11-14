@@ -12,6 +12,9 @@ Aggiornato: 11 novembre 2026. Descrive solo ciò che esiste. Dove una misura non
 
 - Archivio: Supabase, progetto «alfred», regione Francoforte, piano gratuito.
 - Ogni tabella ha le regole di sicurezza sulle righe attive: ogni riga appartiene a un proprietario e solo lui la legge e la modifica.
+- Finanze: i fogli Excel restano sul Mac. Nell'archivio vanno i movimenti letti (con descrizioni e importi), conti, ricorrenti, debiti e obiettivi, protetti dalle stesse regole sulle righe. Nel codice pubblico non ci sono nomi di banche, importi o gestioni. Rapporti e risultato della lettura stanno in `rapporti_finanze/`, fuori dall'archivio pubblico.
+- Il programma `finanze/leggi_fogli.py` scrive nell'archivio con la chiave di servizio letta da `.env.segreti`, solo sulle tabelle delle finanze e solo per l'unico utente reale (si ferma se ne trova più di uno). Non esegue pagamenti e non contatta banche.
+- Il rapporto di `/finanze` è scritto da Claude Code: i numeri letti dai fogli passano quindi dal servizio Claude dell'abbonamento dell'utilizzatore, come ogni altra conversazione.
 - Le prove automatiche usano un utente separato che non vede i dati dell'utilizzatore, e viceversa.
 - Fanno eccezione le prove con Google (`prove/google.prova.mjs`): Google è collegato all'utente reale, quindi la prova apre una sessione a suo nome con la chiave di servizio, senza password e senza inviare email, usa solo dati fittizi, li toglie e chiude la sessione.
 

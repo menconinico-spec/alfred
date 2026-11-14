@@ -43,16 +43,23 @@ Nessun piano a pagamento attivo. Nessuna carta di pagamento inserita.
 - Segnare un'attività come completata non toglie i suoi blocchi futuri dal calendario.
 - Senza rete la pagina si apre ma non salva: non c'è una coda di modifiche da inviare dopo.
 - I riepiloghi delle 8:00 e delle 19:00 non esistono.
+- Finanze: i movimenti arrivano solo dai fogli Excel e solo quando si lancia `/finanze` in Claude Code sul Mac; dalla pagina e da iPhone si guardano ma non si aggiornano. Se la lettura si interrompe a metà, rilanciarla rimette tutto a posto.
+- Finanze: un foglio salvato con Numbers (file `.numbers`) non viene letto: va esportato in Excel con lo stesso nome. Il programma lo segnala fra gli avvisi.
+- Finanze: Alfred non è collegato alle banche. Saldi dei conti, residui e tassi dei debiti sono scritti a mano; dove mancano resta «non indicato». Non calcola imposte.
+- Finanze: le ricorrenze sono solo mensili o annuali. Gli obiettivi sulle entrate usano la media degli ultimi tre mesi conclusi letti dai fogli.
+- Finanze: l'apertura dei fogli con Microsoft Excel non è stata provata (sul Mac c'è solo Numbers).
 
 ## Controlli periodici
 
 - Ogni settimana: esportare una copia dei dati.
 - Dopo ogni modifica al codice: `npm run prove` e `node prove/pagina.prova.mjs`.
 - Dopo modifiche alla funzione `calendario`: `node prove/google.prova.mjs fase1`, spostare a mano in Google Calendar il blocco di prova, poi `fase2` (toglie da sé i dati di prova).
+- Una volta al mese: `/finanze` in Claude Code, dopo aver fatto compilare i fogli.
 - Ogni tanto: aggiornare l'interfaccia Supabase (installata 2.122, disponibile 3.1).
 
 ## Registro delle manutenzioni
 
+- 14 novembre 2026: strumento Finanze (panoramica dei fogli, conti, ricorrenti, debiti, obiettivi, percorso a tappe), programma di lettura dei fogli, comando `/finanze`; lettura dell'archivio a blocchi di mille righe.
 - 11 novembre 2026: prima installazione (struttura dei dati, funzione riservata, pagina, pubblicazione).
 - 12 novembre 2026: tracker delle abitudini (giorni precisi o volte a settimana, spunta o quantità, serie, calendario del mese); nuovo logo su pagina, iPhone e pulsante della scrivania.
 - 12 novembre 2026: pagina del progetto modificabile (blocchi ridimensionabili, note libere), creazione ed eliminazione di progetti, nuove aree Itinerun, Vivi Biohacking e BNI, avviso di pausa attivato, pulsante «Alfred» sulla scrivania, pagina delle norme sulla privacy.

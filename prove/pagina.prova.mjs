@@ -1,6 +1,7 @@
 // Prove della pagina che non richiedono Google: prove 1, 5, 6, 7, 9, 10, 11 dell'incarico.
 // Avvio: (dalla cartella Alfred) npm run pagina   poi, in un'altra finestra:   node prove/pagina.prova.mjs
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import {
   sessioneDiProva, eliminaUtenteDiProva, archivioCome, apriBrowser, apriPagina, clicca, pausa, testo, foto,
@@ -253,6 +254,67 @@ try {
     `prima della spunta: «${primaSpunta.match(/Oggi: [^.]*\./)?.[0]}», ${primaSpunta.match(/serie di \d+ giorni/)?.[0]}, registrazioni di oggi nell'archivio: ${registrazioniPrima}; ` +
     `dopo: «${dopoSpunta.match(/Oggi: [^.]*\./)?.[0]}», ${dopoSpunta.match(/serie di \d+ giorni/)?.[0]}, registrazioni: ${registrazioniDopo.length}; ` +
     `scheda: ${schedaAb.match(/Serie attuale\s*\d+ giorni/)?.[0].replace(/\s+/g, ' ')}, ${schedaAb.match(/Totale volte\s*\d+/)?.[0].replace(/\s+/g, ' ')}; tolta la spunta, le registrazioni di oggi tornano ${dopoTolta} (nessuno zero scritto); su iPhone non esce dallo schermo: ${!tel13Sborda}`);
+
+  // ---------- 14: finanze ----------
+  // Un foglio finto viene letto dal programma e copiato nell'archivio dell'utente di prova.
+  const cartellaFogli = join(RISULTATI, 'fogli');
+  mkdirSync(cartellaFogli, { recursive: true });
+  const radiceAlfred = join(RISULTATI, '..', '..');
+  const leggi = () => execFileSync('python3', [join(radiceAlfred, 'finanze', 'leggi_fogli.py'), '--cartella', cartellaFogli,
+    '--esito', join(cartellaFogli, 'esito.json'), '--invia', '--utente-prova'], { encoding: 'utf8' });
+  execFileSync('python3', [join(radiceAlfred, 'prove', 'foglio_finto.py'), cartellaFogli, '2026']);
+  leggi();
+  await db('fin_obiettivi', 'POST', { nome: 'Entrate Alfa (prova)', tipo: 'entrate_mensili', importo: 1500, gestioni: ['Alfa (prova)'], entro: '2027-12-31' });
+  const vai = async (p, percorso) => { await p.goto(p.url().replace(/#.*/, '') + percorso); await p.reload({ waitUntil: 'networkidle0' }); await pausa(p, 300); };
+  await vai(pagina, '#/finanze');
+  const panoramica = (await testo(pagina, 'main')).replace(/\s+/g, ' ');
+  await foto(pagina, '14-finanze-panoramica');
+  const aggiungi = async (percorso, pulsante, campi) => {
+    await vai(pagina, percorso);
+    await clicca(pagina, 'button', pulsante);
+    await pagina.waitForSelector('dialog[open] form');
+    for (const [nome, valore] of Object.entries(campi)) await pagina.type(`dialog[open] input[name=${nome}]`, valore);
+    await clicca(pagina, 'button', 'Aggiungi', 'dialog[open]');
+    await pagina.waitForFunction(() => !document.querySelector('dialog[open]'), { timeout: 20000 }); await pausa(pagina, 300);
+    return (await testo(pagina, 'main')).replace(/\s+/g, ' ');
+  };
+  const paginaDebiti = await aggiungi('#/finanze/debiti', '+ Debito', { nome: 'Finanziamento finto (prova)', rata: '210,10' });
+  await foto(pagina, '14-finanze-debiti');
+  const paginaRicorrenti = await aggiungi('#/finanze/ricorrenti', '+ Ricorrente', { nome: 'Telefono finto (prova)', importo: '9,90' });
+  const paginaConti = await aggiungi('#/finanze/conti', '+ Conto', { nome: 'Conto finto (prova)' });
+  const debitoArchivio = (await db('fin_debiti?select=residuo,rata,tasso'))[0];
+  const contoArchivio = (await db('fin_conti?select=saldo'))[0];
+  await vai(pagina, '#/finanze/percorso');
+  await pagina.select('.tappa select', 'fatta'); await pausa(pagina, 400);
+  const paginaPercorso = (await testo(pagina, 'main')).replace(/\s+/g, ' ');
+  await foto(pagina, '14-finanze-percorso');
+  const tappeArchivio = (await db('fin_impostazioni?select=tappe'))[0]?.tappe;
+  leggi(); // seconda lettura degli stessi fogli: non deve creare doppioni
+  const righeDopo = (await db('fin_movimenti?select=id')).length;
+  const lettureDopo = (await db('fin_letture?select=righe,avvisi&order=letto_il.desc'));
+  await vai(pagina, '#/finanze');
+  const panoramicaDopo = (await testo(pagina, 'main')).replace(/\s+/g, ' ');
+  const tel14 = await apriPagina(browser, { sessione, schermo: IPHONE, percorso: '#/finanze' });
+  await pausa(tel14.pagina, 300);
+  const sborda14 = [await tel14.pagina.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)];
+  await foto(tel14.pagina, '14-finanze-iphone');
+  await tel14.pagina.goto(tel14.pagina.url().replace(/#.*/, '#/finanze/percorso')); await pausa(tel14.pagina, 300);
+  sborda14.push(await tel14.pagina.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1));
+  await tel14.contesto.close();
+  const cerca = (t, re) => t.match(re)?.[0] ?? 'NON TROVATO';
+  esito('14', 'Finanze: fogli letti senza doppioni, effettivo distinto dal previsto, dati mancanti lasciati vuoti, conti, ricorrenti, debiti, percorso',
+    /Entrate effettive 1\.350,75 €/.test(panoramica) && /Uscite effettive 40,00 €/.test(panoramica) && /entrate 500,00 €, uscite 15,00 €/.test(panoramica)
+      && /Febbraio 450,45 € 0,00 € 450,45 € \+50%/.test(panoramica) && /Previsti con data passata \(2\)/.test(panoramica)
+      && /ultimi 3 mesi conclusi: 450,25 € \(30%\)/.test(panoramica) && /4 avvisi/.test(panoramica) && /Aprile nessuna riga/.test(panoramica)
+      && /residuo non indicato/.test(paginaDebiti) && /Residuo totale non indicato/.test(paginaDebiti) && /Rate al mese 210,10 €/.test(paginaDebiti)
+      && debitoArchivio.residuo === null && debitoArchivio.tasso === null && Number(debitoArchivio.rata) === 210.1
+      && /Uscite ricorrenti: 9,90 € al mese/.test(paginaRicorrenti) && /saldo non indicato/.test(paginaConti) && contoArchivio.saldo === null
+      && /1 su 6 fatte/.test(paginaPercorso) && tappeArchivio?.controllo === 'fatta'
+      && righeDopo === 7 && lettureDopo.length === 2 && /Totale 220,00 €/.test(panoramicaDopo) && /Entrate effettive 1\.350,75 €/.test(panoramicaDopo)
+      && !sborda14.some(Boolean),
+    `panoramica: «${cerca(panoramica, /Entrate effettive [\d.,]+ €/)}», «${cerca(panoramica, /Uscite effettive [\d.,]+ €/)}», previsto a parte «${cerca(panoramica, /entrate [\d.,]+ €, uscite [\d.,]+ €/)}», «${cerca(panoramica, /Febbraio [^A-Z]*%/)}», «${cerca(panoramica, /Previsti con data passata \(\d+\)/)}», obiettivo «${cerca(panoramica, /ultimi 3 mesi conclusi: [\d.,]+ € \(\d+%\)/)}», ${cerca(panoramica, /\d+ avvisi/)}, «${cerca(panoramica, /Aprile nessuna riga/)}»; ` +
+    `debito creato con la sola rata: pagina «${cerca(paginaDebiti, /Residuo totale [^R]*/).trim()}», archivio residuo=${debitoArchivio.residuo} tasso=${debitoArchivio.tasso} rata=${debitoArchivio.rata}; ricorrenti «${cerca(paginaRicorrenti, /Uscite ricorrenti: [\d.,]+ € al mese/)}»; conto «saldo non indicato»: ${/saldo non indicato/.test(paginaConti)}, archivio saldo=${contoArchivio.saldo}; ` +
+    `percorso «${cerca(paginaPercorso, /\d su 6 fatte/)}», archivio tappe=${JSON.stringify(tappeArchivio)}; dopo la seconda lettura: ${righeDopo} movimenti (attesi 7), ${lettureDopo.length} letture, impegni fissi «${cerca(panoramicaDopo, /Totale [\d.,]+ €/)}»; su iPhone esce dallo schermo: ${sborda14.some(Boolean)}`);
 
   // ---------- 10b: disposizione Mac e iPhone ----------
   const larghezze = async (p) => p.evaluate(() => ({

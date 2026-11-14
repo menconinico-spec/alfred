@@ -7,11 +7,13 @@ export const sb = window.supabase.createClient(CONFIG.url, CONFIG.chiavePubblica
   auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
 
-export const TABELLE = ['progetti', 'obiettivi', 'schede', 'sottoschede', 'attivita', 'blocchi', 'registrazioni_tempo', 'abitudini', 'abitudini_registrazioni'];
+export const TABELLE = ['progetti', 'obiettivi', 'schede', 'sottoschede', 'attivita', 'blocchi', 'registrazioni_tempo', 'abitudini', 'abitudini_registrazioni',
+  'fin_conti', 'fin_ricorrenze', 'fin_debiti', 'fin_obiettivi', 'fin_letture', 'fin_movimenti', 'fin_impostazioni'];
 
 export const S = {
   progetti: [], obiettivi: [], schede: [], sottoschede: [], attivita: [], blocchi: [],
   registrazioni_tempo: [], abitudini: [], abitudini_registrazioni: [], cronologia: [], sinc: null,
+  fin_conti: [], fin_ricorrenze: [], fin_debiti: [], fin_obiettivi: [], fin_letture: [], fin_movimenti: [], fin_impostazioni: [],
   caricato: false,
   ultimoRiuscito: null, // ultimo scambio riuscito con l'archivio
   errore: null,         // ultimo errore dell'archivio ancora da risolvere
@@ -50,11 +52,23 @@ const ORDINE = {
   progetti: 'posizione', obiettivi: 'posizione', schede: 'posizione', sottoschede: 'posizione',
   attivita: 'posizione', blocchi: 'inizio', registrazioni_tempo: 'creato_il',
   abitudini: 'posizione', abitudini_registrazioni: 'giorno',
+  fin_conti: 'posizione', fin_ricorrenze: 'posizione', fin_debiti: 'posizione', fin_obiettivi: 'posizione',
+  fin_letture: 'letto_il', fin_movimenti: 'riga', fin_impostazioni: 'creato_il',
 };
+
+/** Legge tutte le righe di una tabella, mille per volta: l'archivio non ne consegna di più in una sola risposta. */
+async function tutteLeRighe(tabella, ordine) {
+  const righe = [];
+  for (let da = 0; ; da += 1000) {
+    const parte = await esegui(() => sb.from(tabella).select('*').order(ordine).order('creato_il').order('id').range(da, da + 999));
+    righe.push(...parte);
+    if (parte.length < 1000) return righe;
+  }
+}
 
 export async function caricaTutto() {
   const [righe, cronologia, sinc] = await Promise.all([
-    Promise.all(TABELLE.map((t) => esegui(() => sb.from(t).select('*').order(ORDINE[t]).order('creato_il')))),
+    Promise.all(TABELLE.map((t) => tutteLeRighe(t, ORDINE[t]))),
     esegui(() => sb.from('cronologia').select('*').order('quando', { ascending: false }).limit(60)),
     esegui(() => sb.from('sincronizzazione').select('calendario_id,calendario_nome,ultimo_riuscito,ultimo_errore,ultimo_errore_il').maybeSingle()),
   ]);
@@ -157,9 +171,8 @@ export async function assicuraAgePlus() {
 /** Legge tutto dall'archivio (non dalla copia in memoria) e lo restituisce in forma leggibile. */
 export async function esporta() {
   const tabelle = {};
-  for (const t of [...TABELLE, 'cronologia']) {
-    tabelle[t] = await esegui(() => sb.from(t).select('*').order(t === 'cronologia' ? 'quando' : 'creato_il'));
-  }
+  for (const t of TABELLE) tabelle[t] = await tutteLeRighe(t, 'creato_il');
+  tabelle.cronologia = await esegui(() => sb.from('cronologia').select('*').order('quando'));
   return { alfred: 1, esportato_il: new Date().toISOString(), tabelle };
 }
 

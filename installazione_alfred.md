@@ -16,6 +16,7 @@ Aggiornato: 11 novembre 2026.
 - Mac, dalla scrivania: doppio clic su «Alfred» (`Alfred.app`), che apre la pagina in una finestra propria di Chrome. Si ricrea con `zsh app-mac/crea_app.sh [immagine dell'icona]`.
 - iPhone: aprire l'indirizzo in Safari, premere Condividi, poi «Aggiungi alla schermata Home».
 - Accesso: «Accedi con Google», con l'unico account ammesso. Provato dal Mac l'11 novembre 2026. Provato anche dall'app aggiunta alla schermata Home di un iPhone: l'utilizzatore ha confermato l'11 novembre 2026 che l'accesso funziona.
+- Finanze: i fogli stanno in Lavoro → Documenti → Flusso di cassa («Flusso di cassa <anno>.xlsx»). Per farli leggere: aprire Claude Code sul Mac e scrivere `/finanze`. Il comando sta in `~/.claude/skills/finanze/`, il programma in `finanze/leggi_fogli.py` (serve python3 con openpyxl). I fogli vuoti di un nuovo anno si creano con `python3 ../strumenti_finanze/crea_fogli.py "<cartella>" <anno>` (non sovrascrive file esistenti).
 - Google mostra l'avviso «app non verificata»: è atteso, l'app è privata.
 - Ogni 7 giorni Google chiede di rifare il collegamento, perché l'app Google è in stato «Test» (vedi manutenzione).
 

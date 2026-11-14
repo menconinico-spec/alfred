@@ -330,3 +330,31 @@ th { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color:
 .pastiglia.attiva { border-color: var(--accento); background: color-mix(in srgb, var(--accento) 15%, transparent); }
 .giorni-scelta { margin-left: 1.6rem; }
 .giorni-scelta { display: flex; flex-wrap: wrap; gap: .35rem; }
+
+/* Finanze */
+.linguette { display: flex; gap: .3rem; flex-wrap: wrap; margin: 0 0 .9rem; }
+.linguette a { text-decoration: none; padding: .35rem .8rem; border-radius: 99px; border: 1px solid var(--bordo); color: var(--testo); background: var(--superficie); }
+.linguette a.attiva { background: var(--accento); border-color: var(--accento); color: var(--accento-testo); }
+.riquadro > .testata { margin: 0 0 .5rem; }
+.riquadro > .testata h2 { margin: 0; }
+.voce-fin { display: flex; flex-direction: column; gap: .25rem; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--bordo); border-radius: 0; background: transparent; padding: .55rem .2rem; height: auto; }
+.voce-fin:hover { background: var(--superficie-2); }
+.voce-fin.dentro { padding-left: 1.4rem; }
+.voce-fin small { color: var(--testo-tenue); white-space: normal; }
+.voce-testa { display: flex; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+.voce-testa span { font-variant-numeric: tabular-nums; }
+.tabella-fin .num, .tabella-fin th.num { text-align: right; }
+.tabella-fin .previsto { color: var(--testo-tenue); font-style: italic; }
+.tabella-fin tr.tenue td { color: var(--testo-tenue); }
+.negativo { color: var(--errore); }
+.due-ordini { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; }
+.due-ordini h3, .tappa h3 { font-size: .95rem; margin: .5rem 0 .25rem; }
+.tappa.fatta { border-left: 4px solid #2e9e5b; }
+.tappa.in_corso { border-left: 4px solid var(--accento); }
+.tappa select { width: auto; }
+.tappa details { margin-top: .6rem; }
+.tappa summary, .finanze details summary { cursor: pointer; }
+.metodi dt { font-weight: 600; margin-top: .5rem; }
+.metodi dd { margin: 0 0 .2rem; }
+.quota { margin-top: .6rem; align-items: end; }
+@media (max-width: 760px) { .finanze .cifre { grid-template-columns: 1fr; } }
